@@ -85,6 +85,7 @@ public:
 
     QString BackgroundImage;
     int BubbleChatBoxKeepTime;
+    int AutoCloseCardContainerDelaySeconds;
 
     // consts
     static const int S_SURRENDER_REQUEST_MIN_INTERVAL;

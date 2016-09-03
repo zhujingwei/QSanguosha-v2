@@ -95,6 +95,7 @@ void Settings::init()
     EnableLuckCard = value("EnableLuckCard", false).toBool();
     ServerPort = value("ServerPort", 9527u).toUInt();
     DisableLua = value("DisableLua", false).toBool();
+    AutoCloseCardContainerDelaySeconds = value("AutoCloseCardContainerDelaySeconds", 0).toInt();
 
 #ifdef Q_OS_WIN32
     UserName = value("UserName", qgetenv("USERNAME")).toString();

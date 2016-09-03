@@ -43,6 +43,7 @@ ConfigDialog::ConfigDialog(QWidget *parent)
     ui->bubbleChatBoxKeepSpinBox->setSuffix(tr(" millisecond"));
     ui->bubbleChatBoxKeepSpinBox->setValue(Config.BubbleChatBoxKeepTime);
     ui->backgroundChangeCheckBox->setChecked(Config.EnableAutoBackgroundChange);
+    ui->secondsSpinBox->setValue(Config.AutoCloseCardContainerDelaySeconds);
 
     connect(ui->checkBoxRecorderAutoSave, SIGNAL(toggled(bool)), ui->checkBoxRecorderNetworkOnly, SLOT(setEnabled(bool)));
     ui->checkBoxRecorderAutoSave->setChecked(Config.value("recorder/autosave", true).toBool());
@@ -151,6 +152,8 @@ void ConfigDialog::saveConfig()
 
     Config.EnableAutoBackgroundChange = ui->backgroundChangeCheckBox->isChecked();
     Config.setValue("EnableAutoBackgroundChange", Config.EnableAutoBackgroundChange);
+    Config.AutoCloseCardContainerDelaySeconds = ui->secondsSpinBox->value();
+    Config.setValue("AutoCloseCardContainerDelaySeconds", Config.AutoCloseCardContainerDelaySeconds);
 
     enabled = ui->checkBoxRecorderAutoSave->isChecked();
     Config.setValue("recorder/autosave", enabled);

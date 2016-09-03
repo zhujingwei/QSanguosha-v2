@@ -185,6 +185,11 @@ void CardContainer::startGongxin(const QList<int> &enabled_ids)
 void CardContainer::addCloseButton()
 {
     close_button->show();
+
+    //必须人为关闭的卡牌候选框，也允许玩家设置成延时若干秒后自动关闭
+    if (Config.AutoCloseCardContainerDelaySeconds > 0) {
+        QTimer::singleShot(Config.AutoCloseCardContainerDelaySeconds * 1000, this, SLOT(clear()));
+    }
 }
 
 void CardContainer::grabItem()
