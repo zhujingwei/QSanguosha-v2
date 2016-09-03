@@ -3500,7 +3500,7 @@ void RoomScene::revivePlayer(const QString &who)
     if (who == Self->objectName()) {
         dashboard->revivePlayer();
         item2player.insert(dashboard, Self);
-        updateSkillButtons();
+        //updateSkillButtons();
         dashboard->updateAvatarTooltip();
     } else {
         Photo *photo = name2photo[who];

@@ -372,7 +372,7 @@ void Room::killPlayer(ServerPlayer *victim, DamageStruct *reason)
         if (p->isAlive() || p == victim)
             thread->trigger(Death, this, p, data);
 
-    victim->detachAllSkills();
+    //victim->detachAllSkills();
     thread->trigger(BuryVictim, this, victim, data);
 
     if (!victim->isAlive() && Config.EnableAI) {

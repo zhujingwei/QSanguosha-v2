@@ -1279,11 +1279,11 @@ void Client::killPlayer(const QVariant &player_name)
 
     alive_count--;
     ClientPlayer *player = getPlayer(name);
-    if (player == Self) {
-        foreach (const Skill *skill, Self->getVisibleSkills())
-            emit skill_detached(skill->objectName());
-    }
-    player->detachAllSkills();
+    //if (player == Self) {
+    //    foreach (const Skill *skill, Self->getVisibleSkills())
+    //        emit skill_detached(skill->objectName());
+    //}
+    //player->detachAllSkills();
 
     if (!Self->hasFlag("marshalling")) {
         QString general_name = player->getGeneralName();
