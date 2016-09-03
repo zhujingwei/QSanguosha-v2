@@ -1100,7 +1100,7 @@ QString Player::getSkillDescription() const
     }
 
     foreach (const Skill *skill, skill_list + basara_list) {
-        if (skill->isAttachedLordSkill() || (!hasSkill(skill) && !basara_list.contains(skill)))
+        if (skill->isAttachedLordSkill() || (!hasSkill(skill) && basara_list.contains(skill)) || (skill->isLordSkill() && !hasLordSkill(skill)))
             continue;
         QString skill_name = Sanguosha->translate(skill->objectName());
         QString desc = skill->getDescription();

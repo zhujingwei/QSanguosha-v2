@@ -344,6 +344,8 @@ struct PindianStruct
 {
     PindianStruct();
     bool isSuccess() const;
+    ServerPlayer *getWinner();
+    QList<ServerPlayer *> getLosers();
 
     ServerPlayer *from;
     ServerPlayer *to;

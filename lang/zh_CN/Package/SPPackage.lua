@@ -398,7 +398,7 @@ return {
 	["jsp_machao"] = "J.SP马超",
 	["&jsp_machao"] = "马超",
 	["designer:jsp_machao"] = "伴剑一生",
-	["#jsp_machao"] = "西凉的猛狮",
+	["#jsp_machao"] = "威震西凉",
 	["illustrator:jsp_machao"] = "depp",
 	--["zhuiji"] = "追击",
 	--[":zhuiji"] = "<font color=\"blue\"><b>锁定技，</b></font>你计算体力值比你少的角色的距离始终为1。",
@@ -446,7 +446,19 @@ return {
 	["linglong"] = "玲珑",
 	[":linglong"] = "锁定技。若你的装备区没有防具牌，视为你装备【八卦阵】；若你的装备区没有坐骑牌，你的手牌上限+1；你的装备区没有宝物牌，视为你拥有技能“奇才”。",
 	["#linglong-treasure"] = "玲珑",
-
+	
+	["jsp_jiaxu"] = "J.SP贾诩",
+	["&jsp_jiaxu"] = "贾诩",
+	["#jsp_jiaxu"] = "料事如神",
+	["jspzhenlve"] = "缜略",
+	[":jspzhenlve"] = "锁定技。你使用的普通锦囊牌不能被【无懈可击】响应；你不能被选择为延时锦囊牌的目标。",
+	["jspjianshu"] = "间书",
+	[":jspjianshu"] = "限定技。出牌阶段，你可以将一张黑色手牌交给一名其他角色，并选择一名攻击范围内含有其的另一名角色，然后令这两名角色拼点：赢的角色弃置两张牌，没赢的角色失去1点体力。",
+	["@@jspjianshu-choose"] = "请选择一名能攻击到 %src 的角色",
+	["jspyongdi"] = "拥嫡",
+	[":jspyongdi"] = "限定技。当你受到伤害后，你可令一名其他男性角色增加1点体力上限，然后若该角色的武将牌上有主公技且其身份不为主公，其拥有此主公技。",
+	["@@jspyongdi-invoke"] = "请选择“拥嫡”的目标角色",
+	
 	--TWSP
 	["TaiwanYJCM"] = "台湾一将成名",
 	["Taiwan_yjcm"] = "台湾一将成名",

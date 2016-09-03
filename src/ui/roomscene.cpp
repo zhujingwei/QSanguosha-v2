@@ -2241,7 +2241,7 @@ void RoomScene::updateSkillButtons(bool isPrepare)
     }
     foreach (const Skill *skill, skill_list) {
         if (skill->isLordSkill()
-            && (Self->getRole() != "lord"
+            && (!Self->hasLordSkill(skill)
             || ServerInfo.GameMode == "06_3v3"
             || ServerInfo.GameMode == "06_XMode"
             || ServerInfo.GameMode == "02_1v1"

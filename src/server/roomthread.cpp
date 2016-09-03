@@ -101,6 +101,31 @@ bool PindianStruct::isSuccess() const
     return success;
 }
 
+ServerPlayer *PindianStruct::getWinner()
+{
+    ServerPlayer *winner = NULL;
+    if (from_number > to_number)
+        winner = from;
+    else if (to_number > from_number)
+        winner = to;
+    return winner;
+}
+
+QList<ServerPlayer *> PindianStruct::getLosers()
+{
+    QList<ServerPlayer *> losers;
+    if (getWinner() == NULL)
+        losers << from << to;
+    else
+    {
+        if (from_number > to_number)
+            losers << to;
+        else
+            losers << from;
+    }
+    return losers;
+}
+
 JudgeStruct::JudgeStruct()
     : who(NULL), card(NULL), pattern("."), good(true), time_consuming(false),
     negative(false), play_animation(true), retrial_by_response(NULL),

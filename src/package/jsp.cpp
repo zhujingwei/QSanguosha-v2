@@ -688,12 +688,35 @@ public:
     }
 };
 
-class JSPShichou : public TargetModSkill
+class JSPShichou : public TriggerSkill
 {
 public:
-    JSPShichou() : TargetModSkill("jspshichou")
+    JSPShichou() : TriggerSkill("jspshichou")
     {
-        frequency = NotFrequent;
+        events << CardUsed;
+        frequency = NotCompulsory;
+    }
+
+    bool triggerable(const ServerPlayer *target) const
+    {
+        return target != NULL;
+    }
+
+    bool trigger(TriggerEvent , Room *room, ServerPlayer *, QVariant &data) const
+    {
+        CardUseStruct useStruct = data.value<CardUseStruct>();
+        if (useStruct.card->isKindOf("Slash") && useStruct.from->hasSkill(this))
+            room->broadcastSkillInvoke(objectName());
+		return false;
+    }
+};
+
+class JSPShichouTMD : public TargetModSkill
+{
+public:
+    JSPShichouTMD() : TargetModSkill("#jspshichou-tmd")
+    {
+
     }
 
     int getExtraTargetNum(const Player *from, const Card *) const
@@ -704,8 +727,197 @@ public:
     }
 };
 
+class JSPZhenlve : public TriggerSkill
+{
+public:
+    JSPZhenlve() : TriggerSkill("jspzhenlve")
+    {
+        events << TrickCardCanceling;
+        frequency = Compulsory;
+    }
+
+    bool triggerable(const ServerPlayer *target) const
+    {
+        return target != NULL;
+    }
+
+    bool trigger(TriggerEvent, Room *, ServerPlayer *, QVariant &data) const
+    {
+        CardEffectStruct effect = data.value<CardEffectStruct>();
+        if (effect.from != NULL && effect.from->isAlive() && effect.from->hasSkill(this))
+            return true;
+        return false;
+    }
+};
+
+class JSPZhenlveProhibit : public ProhibitSkill
+{
+public:
+    JSPZhenlveProhibit() : ProhibitSkill("#jspzhenlve-prohibit")
+    {
+    }
+
+    bool isProhibited(const Player *, const Player *to, const Card *card, const QList<const Player *> &) const
+    {
+        return to->hasSkill(this) && card->isKindOf("DelayedTrick");
+    }
+};
+
+JSPJianshuCard::JSPJianshuCard()
+{
+    mute = true;
+    will_throw = false;
+}
+
+bool JSPJianshuCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
+{
+    if (targets.length() != 0)
+        return false;
+    if (to_select == Self)
+        return false;
+    foreach(const Player *p, to_select->getSiblings())
+    {
+        if (p->inMyAttackRange(to_select) && p != Self && !p->isKongcheng())
+            return true;
+    }
+
+    return false;
+}
+
+void JSPJianshuCard::use(Room *room, ServerPlayer *player, QList<ServerPlayer *> &targets) const
+{
+    ServerPlayer *playerA = targets.first();
+    QList<ServerPlayer *> victims;
+    foreach (ServerPlayer * p, room->getOtherPlayers(playerA))
+    {
+        if (p != player && p->inMyAttackRange(playerA) && !p->isKongcheng())
+            victims << p;
+    }
+
+    ServerPlayer *playerB = room->askForPlayerChosen(player, victims, "jspjianshu", "@@jspjianshu-choose:" + playerA->objectName(), false, true);
+    if (playerB != NULL)
+    {
+        room->removePlayerMark(player, "@jspjianshu");
+        room->broadcastSkillInvoke("jspjianshu");
+        room->doSuperLightbox("jsp_jiaxu", "jspjianshu");
+        CardMoveReason reason(CardMoveReason::S_REASON_GIVE, player->objectName(), playerA->objectName(), "jspjianshu", QString());
+        room->obtainCard(playerA, this, reason, true);
+        playerA->pindian(playerB, "jspjianshu", NULL);
+    }
+}
+
+class JSPJianshuViewAsSkill : public OneCardViewAsSkill
+{
+public:
+    JSPJianshuViewAsSkill() : OneCardViewAsSkill("jspjianshu")
+    {
+        filter_pattern = ".|black";
+    }
+
+    bool isEnabledAtPlay(const Player *player) const
+    {
+        return player->getMark("@jspjianshu") > 0;
+    }
+
+    const Card *viewAs(const Card *originalCard) const
+    {
+        JSPJianshuCard *card = new JSPJianshuCard;
+        card->addSubcard(originalCard);
+        return card;
+    }
+};
+
+class JSPJianshu : public TriggerSkill
+{
+public:
+    JSPJianshu() : TriggerSkill("jspjianshu")
+    {
+        events << Pindian;
+        frequency = Limited;
+        limit_mark = "@jspjianshu";
+        view_as_skill = new JSPJianshuViewAsSkill;
+    }
+
+    bool triggerable(const ServerPlayer *target) const
+    {
+        return target != NULL;
+    }
+
+    bool trigger(TriggerEvent, Room *room, ServerPlayer *, QVariant &data) const
+    {
+        PindianStruct *pindian = data.value<PindianStruct *>();
+        if (pindian->reason != objectName())
+            return false;
+
+        ServerPlayer *winner = pindian->getWinner();
+        QList<ServerPlayer *> losers = pindian->getLosers();
+        if (winner != NULL)
+            room->askForDiscard(winner, objectName(), 2, 2, false, true);
+        for (int i = 0; i < losers.length(); i++)
+            room->loseHp(losers.at(i));
+        return false;
+    }
+};
+
+class JSPYongdi : public MasochismSkill
+{
+public:
+    JSPYongdi() : MasochismSkill("jspyongdi")
+    {
+        frequency = Limited;
+        limit_mark = "@jspyongdi";
+    }
+
+    bool triggerable(const ServerPlayer *target) const
+    {
+        return target != NULL && target->hasSkill(this) && target->getMark("@jspyongdi") > 0;
+    }
+
+    void onDamaged(ServerPlayer *player, const DamageStruct &) const
+    {
+        if (!player->askForSkillInvoke(this))
+            return;
+
+        Room *room = player->getRoom();
+        QList<ServerPlayer *> targets;
+        foreach (ServerPlayer *p, room->getOtherPlayers(player)) {
+            if (p->isMale())
+                targets << p;
+        }
+
+        if (player->getMark("@jspyongdi") > 0 && targets.length() > 0)
+        {
+            ServerPlayer *target = room->askForPlayerChosen(player, targets, objectName(), "@@jspyongdi-invoke", true);
+            if (target != NULL)
+            {
+                room->removePlayerMark(player, "@jspyongdi");
+                room->broadcastSkillInvoke(objectName());
+                room->doSuperLightbox("jsp_jiaxu", objectName());
+                LogMessage log;
+                log.type = "#GainMaxHp";
+                log.from = target;
+                log.arg = "1";
+                log.arg2 = objectName();
+                room->sendLog(log);
+
+                room->setPlayerProperty(target, "maxhp", QVariant(target->getMaxHp() + 1));
+
+                if (!target->isLord())
+                {
+                    foreach (const Skill *sk, target->getVisibleSkillList()) {
+                        if (sk->isLordSkill() && !player->hasSkill(sk))
+                        {
+                            room->acquireSkill(target, sk->objectName());
+                        }
+                    }
+                }
+            }
+        }
+    }
+};
+
 JSPPackage::JSPPackage()
-    : Package("jiexian_sp")
+    : Package("jsp")
 {
     General *jsp_sunshangxiang = new General(this, "jsp_sunshangxiang", "shu", 3, false); // JSP 001
     jsp_sunshangxiang->addSkill(new Liangzhu);
@@ -714,6 +926,8 @@ JSPPackage::JSPPackage()
     General *jsp_machao = new General(this, "jsp_machao", "qun");
     jsp_machao->addSkill(new JSPZhuiji);
     jsp_machao->addSkill(new JSPShichou);
+    jsp_machao->addSkill(new JSPShichouTMD);
+    related_skills.insertMulti("jspshichou", "#jspshichou-tmd");
     /*General *jsp_machao = new General(this, "jsp_machao", "qun", 4, true, true, true); // JSP 002
     jsp_machao->addSkill(new Skill("zhuiji", Skill::Compulsory));
     jsp_machao->addSkill(new Cihuai);*/
@@ -740,10 +954,17 @@ JSPPackage::JSPPackage()
     related_skills.insertMulti("linglong", "#linglong-horse");
     related_skills.insertMulti("linglong", "#linglong-treasure");
 
+    General *jsp_jiaxu = new General(this, "jsp_jiaxu", "wei", 3);
+    jsp_jiaxu->addSkill(new JSPZhenlve);
+    jsp_jiaxu->addSkill(new JSPZhenlveProhibit);
+    related_skills.insertMulti("jspzhenlve", "#jspzhenlve-prohibit");
+    jsp_jiaxu->addSkill(new JSPJianshu);
+    jsp_jiaxu->addSkill(new JSPYongdi);
 
     skills << new Nuzhan;
 
     addMetaObject<JiqiaoCard>();
+    addMetaObject<JSPJianshuCard>();
 }
 
 ADD_PACKAGE(JSP)
