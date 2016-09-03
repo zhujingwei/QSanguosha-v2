@@ -97,79 +97,6 @@ public:
     }
 };
 
-class CihuaiVS : public ZeroCardViewAsSkill
-{
-public:
-    CihuaiVS() : ZeroCardViewAsSkill("cihuai")
-    {
-    }
-
-    bool isEnabledAtPlay(const Player *player) const
-    {
-        return Slash::IsAvailable(player) && player->getMark("@cihuai") > 0;
-    }
-
-    bool isEnabledAtResponse(const Player *player, const QString &pattern) const
-    {
-        return pattern == "slash" && player->getMark("@cihuai") > 0;
-    }
-
-    const Card *viewAs() const
-    {
-        Slash *slash = new Slash(Card::NoSuit, 0);
-        slash->setSkillName("_" + objectName());
-        return slash;
-    }
-};
-
-class Cihuai : public TriggerSkill
-{
-public:
-    Cihuai() : TriggerSkill("cihuai")
-    {
-        events << EventPhaseStart << CardsMoveOneTime << Death;
-        view_as_skill = new CihuaiVS;
-    }
-
-    bool triggerable(const ServerPlayer *target) const
-    {
-        return target != NULL && target->isAlive() && (target->hasSkill(this) || target->getMark("ViewAsSkill_cihuaiEffect") > 0);
-    }
-
-    bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
-    {
-        if (triggerEvent == EventPhaseStart) {
-            if (player->getPhase() == Player::Play && !player->isKongcheng() && TriggerSkill::triggerable(player) && player->askForSkillInvoke(this, data)) {
-                room->showAllCards(player);
-                bool flag = true;
-                foreach (const Card *card, player->getHandcards()) {
-                    if (card->isKindOf("Slash")) {
-                        flag = false;
-                        break;
-                    }
-                }
-                room->setPlayerMark(player, "cihuai_handcardnum", player->getHandcardNum());
-                if (flag) {
-                    room->broadcastSkillInvoke(objectName(), 2);
-                    room->setPlayerMark(player, "@cihuai", 1);
-                    room->setPlayerMark(player, "ViewAsSkill_cihuaiEffect", 1);
-                } else
-                    room->broadcastSkillInvoke(objectName(), 1);
-            }
-        } else if (triggerEvent == CardsMoveOneTime) {
-            if (player->getMark("@cihuai") > 0 && player->getHandcardNum() != player->getMark("cihuai_handcardnum")) {
-                room->setPlayerMark(player, "@cihuai", 0);
-                room->setPlayerMark(player, "ViewAsSkill_cihuaiEffect", 0);
-            }
-        } else if (triggerEvent == Death) {
-            room->setPlayerMark(player, "@cihuai", 0);
-            room->setPlayerMark(player, "ViewAsSkill_cihuaiEffect", 0);
-        }
-        return false;
-    }
-};
-
-
 class Nuzhan : public TriggerSkill
 {
 public:
@@ -771,38 +698,59 @@ JSPJianshuCard::JSPJianshuCard()
 
 bool JSPJianshuCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
 {
-    if (targets.length() != 0)
-        return false;
-    if (to_select == Self)
-        return false;
-    foreach(const Player *p, to_select->getSiblings())
+    if (targets.length() == 1)
     {
-        if (p->inMyAttackRange(to_select) && p != Self && !p->isKongcheng())
-            return true;
+        if (!to_select->inMyAttackRange(targets.first()))
+        {
+            return false;
+        }
     }
 
-    return false;
+    return to_select != Self;
 }
 
-void JSPJianshuCard::use(Room *room, ServerPlayer *player, QList<ServerPlayer *> &targets) const
+bool JSPJianshuCard::targetsFeasible(const QList<const Player *> &targets, const Player *) const
 {
-    ServerPlayer *playerA = targets.first();
-    QList<ServerPlayer *> victims;
-    foreach (ServerPlayer * p, room->getOtherPlayers(playerA))
-    {
-        if (p != player && p->inMyAttackRange(playerA) && !p->isKongcheng())
-            victims << p;
-    }
+    return targets.length() == 2;
+}
 
-    ServerPlayer *playerB = room->askForPlayerChosen(player, victims, "jspjianshu", "@@jspjianshu-choose:" + playerA->objectName(), false, true);
-    if (playerB != NULL)
+void JSPJianshuCard::onUse(Room *room, const CardUseStruct &card_use) const
+{
+    CardUseStruct use = card_use;
+    ServerPlayer *player = card_use.from;
+    ServerPlayer *target = card_use.to.first();
+    QVariant data = QVariant::fromValue(use);
+    RoomThread *thread = room->getThread();
+
+    thread->trigger(PreCardUsed, room, player, data);
+    use = data.value<CardUseStruct>();
+
+    LogMessage log;
+    log.from = card_use.from;
+    log.to << card_use.to;
+    log.type = "#UseCard";
+    log.card_str = toString();
+    room->sendLog(log);
+
+    room->removePlayerMark(player, "@jspjianshu");
+    room->broadcastSkillInvoke("jspjianshu");
+    room->doSuperLightbox("jsp_jiaxu", "jspjianshu");
+
+    CardMoveReason reason(CardMoveReason::S_REASON_GIVE, player->objectName(), target->objectName(), "jspjianshu", QString());
+    room->obtainCard(target, this, reason, true);
+
+    thread->trigger(CardUsed, room, player, data);
+    use = data.value<CardUseStruct>();
+    thread->trigger(CardFinished, room, player, data);
+}
+
+void JSPJianshuCard::use(Room *, ServerPlayer *, QList<ServerPlayer *> &targets) const
+{
+    ServerPlayer *startor = targets.at(0);
+    ServerPlayer *victim = targets.at(1);
+    if (!startor->isKongcheng() && !victim->isKongcheng())
     {
-        room->removePlayerMark(player, "@jspjianshu");
-        room->broadcastSkillInvoke("jspjianshu");
-        room->doSuperLightbox("jsp_jiaxu", "jspjianshu");
-        CardMoveReason reason(CardMoveReason::S_REASON_GIVE, player->objectName(), playerA->objectName(), "jspjianshu", QString());
-        room->obtainCard(playerA, this, reason, true);
-        playerA->pindian(playerB, "jspjianshu", NULL);
+        startor->pindian(victim, "jspjianshu", NULL);
     }
 }
 
@@ -928,9 +876,6 @@ JSPPackage::JSPPackage()
     jsp_machao->addSkill(new JSPShichou);
     jsp_machao->addSkill(new JSPShichouTMD);
     related_skills.insertMulti("jspshichou", "#jspshichou-tmd");
-    /*General *jsp_machao = new General(this, "jsp_machao", "qun", 4, true, true, true); // JSP 002
-    jsp_machao->addSkill(new Skill("zhuiji", Skill::Compulsory));
-    jsp_machao->addSkill(new Cihuai);*/
 
     General *jsp_guanyu = new General(this, "jsp_guanyu", "wei"); // JSP 003
     jsp_guanyu->addSkill("wusheng");

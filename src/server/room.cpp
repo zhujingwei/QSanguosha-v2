@@ -5328,11 +5328,11 @@ ServerPlayer *Room::askForPlayerChosen(ServerPlayer *player, const QList<ServerP
     if (targets.isEmpty()) {
         Q_ASSERT(optional);
         return NULL;
-    } else if (targets.length() == 1 && !optional) {
+    }/* else if (targets.length() == 1 && !optional) {
         QVariant data = QString("%1:%2:%3").arg("playerChosen").arg(skillName).arg(targets.first()->objectName());
         thread->trigger(ChoiceMade, this, player, data);
         return targets.first();
-    }
+    }*/
 
     tryPause();
     notifyMoveFocus(player, S_COMMAND_CHOOSE_PLAYER);

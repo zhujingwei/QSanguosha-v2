@@ -460,49 +460,6 @@ public:
     }
 };
 
-class Danji : public PhaseChangeSkill
-{
-public:
-    Danji() : PhaseChangeSkill("danji")
-    { // What a silly skill!
-        frequency = Wake;
-    }
-
-    bool triggerable(const ServerPlayer *target) const
-    {
-        return PhaseChangeSkill::triggerable(target)
-            && target->getPhase() == Player::Start
-            && target->getMark("danji") == 0
-            && target->getHandcardNum() > target->getHp();
-    }
-
-    bool onPhaseChange(ServerPlayer *guanyu) const
-    {
-        Room *room = guanyu->getRoom();
-        ServerPlayer *the_lord = room->getLord();
-        if (the_lord && (the_lord->getGeneralName().contains("caocao") || the_lord->getGeneral2Name().contains("caocao"))) {
-            room->notifySkillInvoked(guanyu, objectName());
-
-            LogMessage log;
-            log.type = "#DanjiWake";
-            log.from = guanyu;
-            log.arg = QString::number(guanyu->getHandcardNum());
-            log.arg2 = QString::number(guanyu->getHp());
-            room->sendLog(log);
-            room->broadcastSkillInvoke(objectName());
-            //room->doLightbox("$DanjiAnimate", 5000);
-
-            room->doSuperLightbox("sp_guanyu", "danji");
-
-            room->setPlayerMark(guanyu, "danji", 1);
-            if (room->changeMaxHpForAwakenSkill(guanyu) && guanyu->getMark("danji") == 1)
-                room->acquireSkill(guanyu, "mashu");
-        }
-
-        return false;
-    }
-};
-
 YuanhuCard::YuanhuCard()
 {
     mute = true;
@@ -3074,18 +3031,6 @@ SPPackage::SPPackage()
     yuanshu->addSkill(new Yongsi);
     yuanshu->addSkill(new Weidi);
 
-    General *sp_sunshangxiang = new General(this, "sp_sunshangxiang", "shu", 3, false, true); // SP 005
-    sp_sunshangxiang->addSkill("jieyin");
-    sp_sunshangxiang->addSkill("xiaoji");
-
-    General *sp_pangde = new General(this, "sp_pangde", "wei", 4, true, true); // SP 006
-    sp_pangde->addSkill("mashu");
-    sp_pangde->addSkill("mengjin");
-
-    General *sp_guanyu = new General(this, "sp_guanyu", "wei", 4); // SP 007
-    sp_guanyu->addSkill("wusheng");
-    sp_guanyu->addSkill(new Danji);
-
     General *shenlvbu1 = new General(this, "shenlvbu1", "god", 8, true, true); // SP 008 (2-1)
     shenlvbu1->addSkill("mashu");
     shenlvbu1->addSkill("wushuang");
@@ -3099,19 +3044,6 @@ SPPackage::SPPackage()
     shenlvbu2->addSkill(new Shenji);
     related_skills.insertMulti("shenwei", "#shenwei-draw");
 
-    General *sp_caiwenji = new General(this, "sp_caiwenji", "wei", 3, false, true); // SP 009
-    sp_caiwenji->addSkill("beige");
-    sp_caiwenji->addSkill("duanchang");
-
-    General *sp_machao = new General(this, "sp_machao", "qun", 4, true, true); // SP 011
-    sp_machao->addSkill("mashu");
-    sp_machao->addSkill("nostieji");
-
-    General *sp_jiaxu = new General(this, "sp_jiaxu", "wei", 3, true, true); // SP 012
-    sp_jiaxu->addSkill("wansha");
-    sp_jiaxu->addSkill("luanwu");
-    sp_jiaxu->addSkill("weimu");
-
     General *caohong = new General(this, "caohong", "wei"); // SP 013
     caohong->addSkill(new Yuanhu);
 
@@ -3123,10 +3055,6 @@ SPPackage::SPPackage()
     guanyinping->addSkill(new Wuji);
     related_skills.insertMulti("huxiao", "#huxiao-count");
     related_skills.insertMulti("huxiao", "#huxiao-clear");
-
-    General *sp_zhenji = new General(this, "sp_zhenji", "wei", 3, false, true); // SP 015
-    sp_zhenji->addSkill("qingguo");
-    sp_zhenji->addSkill("luoshen");
 
     General *liuxie = new General(this, "liuxie", "qun", 3);
     liuxie->addSkill("tianming");
