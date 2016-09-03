@@ -917,7 +917,7 @@ public:
 };
 
 JSPPackage::JSPPackage()
-    : Package("jsp")
+    : Package("jiexian_sp")
 {
     General *jsp_sunshangxiang = new General(this, "jsp_sunshangxiang", "shu", 3, false); // JSP 001
     jsp_sunshangxiang->addSkill(new Liangzhu);
