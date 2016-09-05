@@ -959,7 +959,7 @@ public:
 
     void playSystemAudioEffect(const char *name, bool superpose = true) const;
     void playAudioEffect(const char *filename, bool superpose = true) const;
-    void playSkillAudioEffect(const char *skill_name, int index, bool superpose = true) const;
+    void playSkillAudioEffect(const char *skill_name, const QString &general_name, int index, bool superpose = true) const;
 
     const ProhibitSkill *isProhibited(const Player *from, const Player *to, const Card *card, const QList<const Player *> &others = QList<const Player *>()) const;
     int correctDistance(const Player *from, const Player *to) const;
@@ -992,9 +992,9 @@ public:
     virtual QDialog *getDialog() const;
 
     void initMediaSource();
-    void playAudioEffect(int index = -1, bool superpose = true) const;
+    void playAudioEffect(const QString &general_name, int index = -1, bool superpose = true) const;
     virtual Frequency getFrequency(const Player *target = NULL) const;
-    QStringList getSources() const;
+    QStringList getSources(const QString &general_name) const;
 };
 
 %extend Skill {
@@ -1115,7 +1115,7 @@ public:
     void retrial(const Card *card, ServerPlayer *player, JudgeStruct *judge, const char *skill_name, bool exchange = false);
     void notifySkillInvoked(ServerPlayer *player, const char *skill_name);
     void broadcastSkillInvoke(const char *skillName);
-    void broadcastSkillInvoke(const char *skillName, const char *category);
+    void broadcastSkillInvoke(const char *skillName, const char *category, int type = -1);
     void broadcastSkillInvoke(const char *skillName, int type);
     void broadcastSkillInvoke(const char *skillName, bool isMale, int type);
     void doLightbox(const char *lightboxName, int duration = 2000, int pixelSize = 0);

@@ -422,10 +422,10 @@ QString GeneralOverview::getIllustratorInfo(const QString &general_name)
     }
 }
 
-void GeneralOverview::addLines(const Skill *skill)
+void GeneralOverview::addLines(const Skill *skill, const General *general)
 {
     QString skill_name = Sanguosha->translate(skill->objectName());
-    QStringList sources = skill->getSources();
+    QStringList sources = skill->getSources(general->objectName());
 
     if (sources.isEmpty()) {
         QCommandLinkButton *button = new QCommandLinkButton(skill_name);
@@ -500,14 +500,13 @@ void GeneralOverview::on_tableWidget_itemSelectionChanged()
     resetButtons();
 
     foreach(const Skill *skill, skills)
-        addLines(skill);
+        addLines(skill, general);
 
-    QString last_word = Sanguosha->translate("~" + general->objectName());
-    if (last_word.startsWith("~") && general->objectName().contains("_"))
-        last_word = Sanguosha->translate(("~") + general->objectName().split("_").last());
 
-    if (!last_word.startsWith("~")) {
-        if (last_word == " ")
+    if (general->hasLastWord())
+    {
+        QString last_word = Sanguosha->translate("~" + general->objectName());
+        if (last_word == "" || last_word == "~" + general->objectName())
             last_word = tr("Translation missing.");
         QCommandLinkButton *death_button = new QCommandLinkButton(tr("Death"), last_word);
         button_layout->addWidget(death_button);
@@ -515,20 +514,6 @@ void GeneralOverview::on_tableWidget_itemSelectionChanged()
         connect(death_button, SIGNAL(clicked()), general, SLOT(lastWord()));
 
         addCopyAction(death_button);
-    }
-
-    if (general_name.contains("caocao")) {
-        QCommandLinkButton *win_button = new QCommandLinkButton(tr("Victory"),
-            tr("Six dragons lead my chariot, "
-            "I will ride the wind with the greatest speed."
-            "With all of the feudal lords under my command,"
-            "to rule the world with one name!"));
-
-        button_layout->addWidget(win_button);
-        addCopyAction(win_button);
-
-        win_button->setObjectName("audio/system/win-cc.ogg");
-        connect(win_button, SIGNAL(clicked()), this, SLOT(playAudioEffect()));
     }
 
     if (general_name == "shenlvbu1" || general_name == "shenlvbu2") {

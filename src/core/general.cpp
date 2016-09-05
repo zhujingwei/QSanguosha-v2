@@ -20,6 +20,7 @@ General::General(Package *package, const QString &name, const QString &kingdom,
         lord = false;
         setObjectName(name);
     }
+    last_word_path = QString("audio/general/%1/death.ogg").arg(objectName());
 }
 
 int General::getMaxHp() const
@@ -196,15 +197,15 @@ QString General::getBriefName() const
     return name;
 }
 
+bool General::hasLastWord() const
+{
+    bool fileExists = QFile::exists(last_word_path);
+    return fileExists;
+}
+
 void General::lastWord() const
 {
-    QString filename = QString("audio/death/%1.ogg").arg(objectName());
-    bool fileExists = QFile::exists(filename);
-    if (!fileExists) {
-        QStringList origin_generals = objectName().split("_");
-        if (origin_generals.length() > 1)
-            filename = QString("audio/death/%1.ogg").arg(origin_generals.last());
-    }
-    Sanguosha->playAudioEffect(filename);
+    if (hasLastWord())
+        Sanguosha->playAudioEffect(last_word_path);
 }
 

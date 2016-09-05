@@ -1362,11 +1362,11 @@ void Engine::playAudioEffect(const QString &filename, bool superpose) const
 #endif
 }
 
-void Engine::playSkillAudioEffect(const QString &skill_name, int index, bool superpose) const
+void Engine::playSkillAudioEffect(const QString &skill_name, const QString &general_name, int index, bool superpose) const
 {
     const Skill *skill = skills.value(skill_name, NULL);
     if (skill)
-        skill->playAudioEffect(index, superpose);
+        skill->playAudioEffect(general_name, index, superpose);
 }
 
 const Skill *Engine::getSkill(const QString &skill_name) const

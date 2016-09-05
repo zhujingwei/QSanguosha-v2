@@ -950,7 +950,6 @@ bool Room::askForSkillInvoke(ServerPlayer *player, const QString &skill_name, co
     if (ai) {
         thread->delay();
         invoked = ai->askForSkillInvoke(skill_name, data);
-        const Skill *skill = Sanguosha->getSkill(skill_name);
     } else {
         JsonArray skillCommand;
         if (data.type() == QVariant::String)
@@ -4361,13 +4360,13 @@ void Room::notifySkillInvoked(ServerPlayer *player, const QString &skill_name)
     doBroadcastNotify(QSanProtocol::S_COMMAND_LOG_EVENT, args);
 }
 
-void Room::broadcastSkillInvoke(const QString &skill_name, const QString &category)
+void Room::broadcastSkillInvoke(const QString &skill_name, const QString &category, int type)
 {
     JsonArray args;
     args << QSanProtocol::S_GAME_EVENT_PLAY_EFFECT;
     args << skill_name;
     args << category;
-    args << -1;
+    args << type;
     doBroadcastNotify(QSanProtocol::S_COMMAND_LOG_EVENT, args);
 }
 

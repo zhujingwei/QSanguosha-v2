@@ -234,7 +234,7 @@ public:
     bool broadcastProperty(ServerPlayer *player, const char *property_name, const QString &value = QString());
     void notifySkillInvoked(ServerPlayer *player, const QString &skill_name);
     void broadcastSkillInvoke(const QString &skillName);
-    void broadcastSkillInvoke(const QString &skillName, const QString &category);
+    void broadcastSkillInvoke(const QString &skillName, const QString &category, int type = -1);
     void broadcastSkillInvoke(const QString &skillName, int type);
     void broadcastSkillInvoke(const QString &skillName, bool isMale, int type);
     void doLightbox(const QString &lightboxName, int duration = 2000, int pixelSize = 0);

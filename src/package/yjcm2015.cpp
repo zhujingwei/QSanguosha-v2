@@ -32,7 +32,7 @@ public:
         if (j.who == NULL)
             return;
 
-        room->broadcastSkillInvoke(objectName());
+        target->broadcastSkillInvoke(objectName());
         j.pattern = ".";
         j.play_animation = false;
         j.reason = "huituo";
@@ -192,14 +192,8 @@ public:
 
 
             if (player->hasLordSkill(this) && player->getMark(limit_mark) > 0 && hasWeiGens(player) && player->askForSkillInvoke(this, data)) {
-                if (!player->isLord() && player->hasSkill("weidi")) {
-                    room->broadcastSkillInvoke("weidi");
-                    room->doSuperLightbox("yuanshu", "xingshuai");
-                }
-                else {
-                    room->broadcastSkillInvoke(objectName());
-                    room->doSuperLightbox("caorui", "xingshuai");
-                }
+                player->broadcastSkillInvoke(objectName());
+                room->doSuperLightbox(player->getGeneralName(), "xingshuai");
 
                 room->removePlayerMark(player, limit_mark);
 
@@ -279,7 +273,7 @@ public:
         if (player->hasSkill(this) && damage.card && damage.card->isKindOf("Slash") && player->getWeapon() != NULL
             && !damage.chain && !damage.transfer
             && room->askForSkillInvoke(player, objectName(), QVariant::fromValue(target))) {
-            room->broadcastSkillInvoke(objectName());
+            player->broadcastSkillInvoke(objectName());
 
             const Card *weaponCard = player->getWeapon()->getRealCard();
             const Weapon *weapon = qobject_cast<const Weapon *>(weaponCard);
@@ -463,7 +457,7 @@ public:
             return false;
 
         if (player->askForSkillInvoke(this)) {
-            room->broadcastSkillInvoke(objectName());
+            player->broadcastSkillInvoke(objectName());
             current->drawCards(1, objectName());
 
             QList<ServerPlayer *> mosts;
@@ -964,7 +958,7 @@ public:
                 continue;
 
             if (p->askForSkillInvoke(objectName(), QVariant::fromValue(player))) {
-                room->broadcastSkillInvoke(objectName());
+                p->broadcastSkillInvoke(objectName());
                 QList<ServerPlayer *> l;
                 l << p << player;
                 room->sortByActionOrder(l);
@@ -1067,7 +1061,7 @@ public:
         ServerPlayer *male = room->askForPlayerChosen(player, malelist, objectName(), "@yjyanyu-give", true);
 
         if (male != NULL) {
-            room->broadcastSkillInvoke(objectName());
+            player->broadcastSkillInvoke(objectName());
             male->drawCards(2, objectName());
         }
 
@@ -1557,7 +1551,7 @@ public:
             if (TriggerSkill::triggerable(zhongyao) && player != zhongyao) {
                 ServerPlayer *p = room->askForPlayerChosen(zhongyao, use.to, "zuoding", "@zuoding", true, true);
                 if (p != NULL) {
-                    room->broadcastSkillInvoke(objectName());
+                    zhongyao->broadcastSkillInvoke(objectName());
                     p->drawCards(1, "zuoding");
                 }
             }

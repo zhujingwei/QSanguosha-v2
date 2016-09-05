@@ -58,6 +58,7 @@ public:
     {
         return extra_set;
     }
+    bool hasLastWord() const;
 
 public slots:
     void lastWord() const;
@@ -72,6 +73,7 @@ private:
     QStringList related_skills;
     bool hidden;
     bool never_shown;
+    QString last_word_path;
 };
 
 #endif

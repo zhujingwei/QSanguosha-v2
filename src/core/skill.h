@@ -36,10 +36,10 @@ public:
     virtual QDialog *getDialog() const;
 
     void initMediaSource();
-    void playAudioEffect(int index = -1, bool superpose = true) const;
+    void playAudioEffect(const QString &general_name, int index = -1, bool superpose = true) const;
     virtual Frequency getFrequency(const Player *target = NULL) const;
     QString getLimitMark() const;
-    QStringList getSources() const;
+    QStringList getSources(const QString &general_name) const;
 
 protected:
     Frequency frequency;
@@ -48,7 +48,7 @@ protected:
 
 private:
     bool lord_skill;
-    QStringList sources;
+    QMultiMap<QString, QString> sources;
 };
 
 class ViewAsSkill : public Skill

@@ -30,7 +30,7 @@ public:
     void drawCard(const Card *card);
     Room *getRoom() const;
     void broadcastSkillInvoke(const Card *card) const;
-    void broadcastSkillInvoke(const QString &card_name) const;
+    void broadcastSkillInvoke(const QString &name, int type = -1) const;
     int getRandomHandCardId() const;
     const Card *getRandomHandCard() const;
     void obtainCard(const Card *card, bool unhide = true);

@@ -271,7 +271,7 @@ sgs.ai_skill_discard["olyongsi"] = function(self, discard_num, min_num, optional
 end
 --[[
     技能：觊玺（觉醒技）
-    描述：你的回合结束时，若你连续三回合没有失去过体力，则你加1点体力上限并回复1点体力，然后选择一项：1．获得技能“妄尊”；2．摸两张牌并获得当前主公的主公技。
+    描述：你的回合结束时，若你连续三回合没有失去过体力，则你加1点体力上限并回复1点体力，然后选择一项：1．获得技能“妄尊”；2．摸两张牌并获得当前主公的主公技，
 ]]--
 --room->askForChoice(player, "oljixi", choices.join("+"))
 sgs.ai_skill_choice["oljixi"] = function(self, choices, data)

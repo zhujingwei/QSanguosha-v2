@@ -353,7 +353,7 @@ QString QSanRoomSkin::getPlayerAudioEffectPath(const QString &eventName, const Q
     if (fileName.isEmpty()) {
         const Skill *skill = Sanguosha->getSkill(eventName);
         QStringList fileNames;
-        if (skill) fileNames = skill->getSources();
+        if (skill) fileNames = skill->getSources(category);
         if (!fileNames.isEmpty()) {
             if (index < 0)
                 fileName = fileNames.at(qrand() % fileNames.length());

@@ -105,40 +105,51 @@ int Skill::getEffectIndex(const ServerPlayer *, const Card *) const
 
 void Skill::initMediaSource()
 {
-    sources.clear();
-    for (int i = 1;; i++) {
-        QString effect_file = QString("audio/skill/%1%2.ogg").arg(objectName()).arg(QString::number(i));
-        if (QFile::exists(effect_file))
-            sources << effect_file;
-        else
-            break;
-    }
+        sources.clear();
+        foreach(const General *general, Sanguosha->getAllGenerals())
+        {
+            if (!general->hasSkill(objectName()))
+                continue;
+            QString general_name = general->objectName();
+            QStringList tempSources;
+            for (int i = 1;; i++) {
+                QString effect_file = QString("audio/general/%1/%2%3.ogg").arg(general_name).arg(objectName()).arg(QString::number(i));
+                if (QFile::exists(effect_file))
+                    tempSources << effect_file;
+                else
+                    break;
+            }
 
-    if (sources.isEmpty()) {
-        QString effect_file = QString("audio/skill/%1.ogg").arg(objectName());
-        if (QFile::exists(effect_file))
-            sources << effect_file;
-    }
+            if (tempSources.isEmpty()) {
+                QString effect_file = QString("audio/general/%1/%2.ogg").arg(general_name).arg(objectName());
+                if (QFile::exists(effect_file))
+                    tempSources << effect_file;
+            }
+            foreach(QString source, tempSources)
+                sources.insertMulti(general_name, source);
+            tempSources.clear();
+        }
 }
 
-void Skill::playAudioEffect(int index, bool superpose) const
+void Skill::playAudioEffect(const QString &general_name, int index, bool superpose) const
 {
-    if (!sources.isEmpty()) {
+    if (!sources.contains(general_name)) {
+        QStringList source_list = sources.values(general_name);
         if (index == -1)
-            index = qrand() % sources.length();
+            index = qrand() % source_list.length();
         else
             index--;
 
         // check length
         QString filename;
-        if (index >= 0 && index < sources.length())
-            filename = sources.at(index);
-        else if (index >= sources.length()) {
-            while (index >= sources.length())
-                index -= sources.length();
-            filename = sources.at(index);
+        if (index >= 0 && index < source_list.length())
+            filename = source_list.at(index);
+        else if (index >= source_list.length()) {
+            while (index >= source_list.length())
+                index -= source_list.length();
+            filename = source_list.at(index);
         } else
-            filename = sources.first();
+            filename = source_list.first();
 
         Sanguosha->playAudioEffect(filename, superpose);
     }
@@ -154,9 +165,9 @@ QString Skill::getLimitMark() const
     return limit_mark;
 }
 
-QStringList Skill::getSources() const
+QStringList Skill::getSources(const QString &general_name) const
 {
-    return sources;
+    return sources.values(general_name);
 }
 
 QDialog *Skill::getDialog() const
