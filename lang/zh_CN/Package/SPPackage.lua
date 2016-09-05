@@ -97,16 +97,6 @@ return {
 	["luoyan"] = "落雁",
 	[":luoyan"] = "锁定技。若你的武将牌上有“星舞牌”，你拥有“天香”和“流离”。",
 
-	["#xiahoushi"] = "疾冲之恋",
-	["xiahoushi"] = "夏侯氏",
-	["illustrator:xiahoushi"] = "牧童的短笛",
-	["yanyu"] = "燕语",
-	[":yanyu"] = "一名角色的出牌阶段开始时，你可以弃置一张牌：若如此做，本回合的出牌阶段内限三次，一张与此牌类型相同的牌置入弃牌堆时，你可以令一名角色获得之。",
-	["@yanyu-discard"] = "你可以弃置一张牌发动“燕语”",
-	["@yanyu-give"] = "你可以令一名角色获得 %arg[%arg2]",
-	["xiaode"] = "孝德",
-	[":xiaode"] = "每当一名其他角色死亡结算后，你可以拥有该角色武将牌上的一项技能（除主公技与觉醒技），且“孝德”无效，直到你的回合结束时。每当你失去“孝德”后，你失去以此法获得的技能。",
-
 	["#zhangbao"] = "地公将军",
 	["zhangbao"] = "张宝",
 	["illustrator:zhangbao"] = "大佬荣",
@@ -250,26 +240,6 @@ return {
 	[":shixin"] = "锁定技。每当你受到火焰伤害时，防止此伤害。",
 	["#ShixinProtect"] = "%from 的“<font color=\"yellow\"><b>释衅</b></font>”被触发，防止了 %arg 点伤害[%arg2]",
 
-	["#ol_masu"] = "恃才傲物",
-	["ol_masu"] = "OL马谡",
-	["&ol_masu"] = "马谡",
-	["illustrator:ol_masu"] = "张帅",
-	["sanyao"] = "散谣",
-	[":sanyao"] = "阶段技。你可以弃置一张牌并选择一名体力值为场上最多（或之一）的角色：若如此做，该角色受到1点伤害。",
-	["zhiman"] = "制蛮",
-	[":zhiman"] = "每当你对一名角色造成伤害时，你可以防止此伤害，然后获得其装备区或判定区的一张牌。",
-
-	["#ol_yujin"] = "魏武之刚",
-	["ol_yujin"] = "OL于禁",
-	["&ol_yujin"] = "于禁",
-	["illustrator:ol_yujin"] = "Yi章",
-	["jieyue"] = "节钺",
-	[":jieyue"] = "结束阶段开始时，你可以弃置一张手牌，然后令一名其他角色选择一项：将一张牌置于你的武将牌上；或令你弃置其一张牌。你武将牌上有牌时，你可以将红色手牌当【闪】、黑色的手牌当【无懈可击】使用或打出。准备阶段开始时，你获得你武将牌上的牌。",
-	["@jieyue"] = "你可以发动“<font color=\"yellow\"><b>节钺</b></font>”",
-	["~jieyue"] = "选择一张手牌并选择一名目标角色→点击确定",
-	["@jieyue_put"] = "%src 对你发动了“<font color=\"yellow\"><b>节钺</b></font>”，请将一张牌置于其武将牌上，或点“取消”令其弃置你的一张牌",
-	["jieyue_pile"] = "节钺",
-
 	["hanba"] = "旱魃",
 	["#hanba"] = "如惔如焚",
 	["illustrator:hanba"] = "雪君s",
@@ -294,11 +264,6 @@ return {
 	["&ol_xingcai"] = "星彩" ,
 	["olshenxian"] = "甚贤" ,
 	[":olshenxian"] = "每名其他角色的回合限一次，你的回合外，每当有其他角色因弃置而失去牌时，若其中有基本牌，你可以摸一张牌。",
-
-	["ol_xusheng"] = "OL徐盛" ,
-	["&ol_xusheng"] = "徐盛" ,
-	["olpojun"] = "破军" ,
-	[":olpojun"] = "出牌阶段，你的【杀】指定目标后，你可以将目标至多X张牌移出游戏外，若如此做，结束阶段开始时，其获得以此法移出游戏的牌（X为目标角色的体力值）。" ,
 
 	["sunluyu"] = "孙鲁育" ,
 	["#sunluyu"] = "舍身饲虎",
@@ -395,7 +360,9 @@ return {
 	[":jspzhuiji"] = "锁定技。你计算与体力值不大于你的角色的距离视为1。",
 	["jspshichou"] = "誓仇",
 	[":jspshichou"] = "你使用【杀】可以多选择至多X名角色为目标（X为你已损失的体力值）。",
-
+	["@@jspshichou-invoke"] = "请选择至多 %arg 名角色",
+	["~jspshichou"] = "点击一名或多名角色→点击确定",
+	
 	["jsp_guanyu"] = "J.SP关羽",
 	["&jsp_guanyu"] = "关羽",
 	["#jsp_guanyu"] = "汉寿亭侯",
@@ -540,11 +507,6 @@ return {
 	["fenyin"] = "奋音",
 	[":fenyin"] = "当你使用牌时，若此牌与你于本回合内使用的上一张牌的颜色不同，你可以摸一张牌。",
 	
-	["ol_liubei"] = "OL刘备",
-	["&ol_liubei"] = "刘备" ,
-	["olrende"] = "仁德" ,
-	[":olrende"] = "出牌阶段，你可以将任意张手牌交给一名其他角色，然后你于此阶段内不能再次以此法交给该角色牌。当你以此法交给其他角色的牌数在同一阶段内首次达到两张或更多时，你回复1点体力",
-	
 	["ol_xiahoudun"] = "OL夏侯惇" ,
 	["&ol_xiahoudun"] = "夏侯惇" ,
 	["olqingjian"] = "清俭" ,
@@ -584,21 +546,6 @@ return {
 	["oljixi:wangzun"] = "获得技能“妄尊”",
 	["oljixi:lordskill"] = "摸两张牌并获得主公技",
 	["oljixi_lordskill"] = "觊玺",
-	
-	["ol_zhangjiao"] = "OL张角",
-	["&ol_zhangjiao"] = "张角",
-	["illustrator:ol_zhangjiao"] = "LiuHeng",
-	["olleiji"] = "雷击",
-	[":olleiji"] = "当你使用或打出【闪】时，你可以令一名其他角色进行判定，若结果为：黑桃，你对该角色造成2点雷电伤害；梅花，你回复1点体力，然后对该角色造成1点雷电伤害。",
-	["@olleiji"] = "您可以发动“雷击”选择一名其他角色，令其进行判定",
-
-	["ol_caozhi"] = "OL曹植",
-	["&ol_caozhi"] = "曹植",
-	["designer:caozhi"] = "Foxear",
-	["illustrator:caozhi"] = "木美人",
-	["olluoying"] = "落英",
-	[":olluoying"] = "其他角色的梅花牌因弃置或判定而置入弃牌堆后，你可以获得其中的任意张。",
-	
 
 	["zhugeguo"] = "诸葛果",
 	["&zhugeguo"] = "诸葛果",

@@ -940,7 +940,7 @@ bool Room::notifyMoveFocus(const QList<ServerPlayer *> &players, CommandType com
     return doBroadcastNotify(S_COMMAND_MOVE_FOCUS, arg);
 }
 
-bool Room::askForSkillInvoke(ServerPlayer *player, const QString &skill_name, const QVariant &data)
+bool Room::askForSkillInvoke(ServerPlayer *player, const QString &skill_name, const QVariant &data, const bool do_notify)
 {
     tryPause();
     notifyMoveFocus(player, S_COMMAND_INVOKE_SKILL);
@@ -948,10 +948,9 @@ bool Room::askForSkillInvoke(ServerPlayer *player, const QString &skill_name, co
     bool invoked = false;
     AI *ai = player->getAI();
     if (ai) {
+        thread->delay();
         invoked = ai->askForSkillInvoke(skill_name, data);
         const Skill *skill = Sanguosha->getSkill(skill_name);
-        if (invoked && !(skill && (skill->getFrequency(player) == Skill::Frequent || skill->getFrequency(player) == Skill::Limited)))
-            thread->delay();
     } else {
         JsonArray skillCommand;
         if (data.type() == QVariant::String)
@@ -973,7 +972,7 @@ bool Room::askForSkillInvoke(ServerPlayer *player, const QString &skill_name, co
         }
     }
 
-    if (invoked) {
+    if (invoked && do_notify) {
         JsonArray msg;
         msg << skill_name << player->objectName();
         doBroadcastNotify(S_COMMAND_INVOKE_SKILL, msg);
@@ -1004,8 +1003,8 @@ QString Room::askForChoice(ServerPlayer *player, const QString &skill_name, cons
         answer = validChoices.first();
     else {
         if (ai) {
-            answer = ai->askForChoice(skill_name, choices, data);
             thread->delay();
+            answer = ai->askForChoice(skill_name, choices, data);
         } else {
             bool success = doRequest(player, S_COMMAND_MULTIPLE_CHOICE, JsonArray() << skill_name << choices, true);
             QVariant clientReply = player->getClientReply();
@@ -1129,11 +1128,11 @@ bool Room::_askForNullification(const Card *trick, ServerPlayer *from, ServerPla
         foreach (ServerPlayer *player, validAiPlayers) {
             AI *ai = player->getAI();
             if (ai == NULL) continue;
+            thread->delay();
             card = ai->askForNullification(aiHelper.m_trick, aiHelper.m_from, aiHelper.m_to, positive);
             if (card && player->isCardLimited(card, Card::MethodUse))
                 card = NULL;
             if (card != NULL) {
-                thread->delay();
                 repliedPlayer = player;
                 break;
             }
@@ -1300,11 +1299,11 @@ const Card *Room::askForCard(ServerPlayer *player, const QString &pattern, const
     } else {
         AI *ai = player->getAI();
         if (ai) {
+            thread->delay();
             card = ai->askForCard(pattern, prompt, data);
             if (card && card->isKindOf("DummyCard") && card->subcardsLength() == 1)
                 card = Sanguosha->getCard(card->getEffectiveId());
             if (card && player->isCardLimited(card, method)) card = NULL;
-            if (card) thread->delay();
         } else {
             JsonArray arg;
             arg << pattern;
@@ -1485,12 +1484,12 @@ const Card *Room::askForUseCard(ServerPlayer *player, const QString &pattern, co
     bool isCardUsed = false;
     AI *ai = player->getAI();
     if (ai) {
+        thread->delay();
         QString answer = ai->askForUseCard(pattern, prompt, method);
         if (answer != ".") {
             isCardUsed = true;
             card_use.from = player;
             card_use.parse(answer, this);
-            thread->delay();
         }
     } else {
         JsonArray ask_str;
@@ -1629,7 +1628,10 @@ const Card *Room::askForSinglePeach(ServerPlayer *player, ServerPlayer *dying)
 
     AI *ai = player->getAI();
     if (ai)
+    {
+        thread->delay();
         card = ai->askForSinglePeach(dying);
+    }
     else {
         int peaches = 1 - dying->getHp();
         JsonArray arg;
@@ -4800,7 +4802,10 @@ Card::Suit Room::askForSuit(ServerPlayer *player, const QString &reason)
 
     AI *ai = player->getAI();
     if (ai)
+    {
+        thread->delay();
         return ai->askForSuit(reason);
+    }
 
     bool success = doRequest(player, S_COMMAND_CHOOSE_SUIT, QVariant(), true);
 
@@ -4829,6 +4834,7 @@ QString Room::askForKingdom(ServerPlayer *player, const QString &reason)
     QString result = "wei";
     AI *ai = player->getAI();
     if (ai) {
+        thread->delay();
         if (reason.length() > 0)
             result = ai->askForChoice(reason, Sanguosha->getKingdoms().join("+"), QVariant());
         else
@@ -4932,6 +4938,7 @@ bool Room::askForDiscard(ServerPlayer *player, const QString &reason, int discar
     AI *ai = player->getAI();
     QList<int> to_discard;
     if (ai) {
+        thread->delay();
         to_discard = ai->askForDiscard(reason, discard_num, min_num, optional, include_equip, pattern);
     } else {
         JsonArray ask_str;
@@ -4994,6 +5001,7 @@ const Card *Room::askForExchange(ServerPlayer *player, const QString &reason, in
     QList<int> to_exchange;
     AI *ai = player->getAI();
     if (ai) {
+        thread->delay();
         // share the same callback interface
         player->setFlags("Global_AIDiscardExchanging");
         to_exchange = ai->askForDiscard(reason, discard_num, min_num, optional, include_equip, pattern);
@@ -5062,6 +5070,7 @@ void Room::askForGuanxing(ServerPlayer *zhuge, const QList<int> &cards, Guanxing
 
     AI *ai = zhuge->getAI();
     if (ai) {
+        thread->delay();
         ai->askForGuanxing(cards, top_cards, bottom_cards, (int)guanxing_type);
     } else if (guanxing_type == GuanxingUpOnly && cards.length() == 1) {
         top_cards = cards;
@@ -5268,7 +5277,10 @@ QList<const Card *> Room::askForPindianRace(ServerPlayer *from, ServerPlayer *to
     if (!from_card) {
         ai = from->getAI();
         if (ai)
+        {
+            thread->delay();
             from_card = ai->askForPindian(from, reason);
+        }
     }
     if (!to_card) {
         ai = to->getAI();
@@ -5339,9 +5351,8 @@ ServerPlayer *Room::askForPlayerChosen(ServerPlayer *player, const QList<ServerP
     AI *ai = player->getAI();
     ServerPlayer *choice = NULL;
     if (ai) {
+        thread->delay();
         choice = ai->askForPlayerChosen(targets, skillName);
-        if (choice && notify_skill)
-            thread->delay();
     } else {
         JsonArray req;
         JsonArray req_targets;
@@ -5835,6 +5846,7 @@ bool Room::askForYiji(ServerPlayer *guojia, QList<int> &cards, const QString &sk
     QList<int> ids;
     AI *ai = guojia->getAI();
     if (ai) {
+        thread->delay();
         int card_id;
         ServerPlayer *who = ai->askForYiji(cards, skill_name, card_id);
         if (!who)
@@ -5921,7 +5933,10 @@ QString Room::askForOrder(ServerPlayer *player, const QString &default_choice)
     notifyMoveFocus(player, S_COMMAND_CHOOSE_ORDER);
 
     if (player->getAI())
+    {
+        thread->delay();
         return default_choice;
+    }
 
     bool success = doRequest(player, S_COMMAND_CHOOSE_ORDER, (int)S_REASON_CHOOSE_ORDER_TURN, true);
 

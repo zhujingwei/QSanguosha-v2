@@ -30,7 +30,7 @@ public:
 
     bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &) const
     {
-        foreach (ServerPlayer *sun, room->getAllPlayers()) {
+        foreach(ServerPlayer *sun, room->getAllPlayers()) {
             if (TriggerSkill::triggerable(sun)) {
                 QString choice = room->askForChoice(sun, objectName(), "draw+letdraw+dismiss", QVariant::fromValue(player));
                 if (choice == "dismiss")
@@ -41,7 +41,8 @@ public:
                 if (choice == "draw") {
                     sun->drawCards(1);
                     room->setPlayerMark(sun, "@liangzhu_draw", 1);
-                } else if (choice == "letdraw") {
+                }
+                else if (choice == "letdraw") {
                     player->drawCards(2);
                     room->setPlayerMark(player, "@liangzhu_draw", 1);
                 }
@@ -68,7 +69,7 @@ public:
     bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &) const
     {
         bool flag = false;
-        foreach (ServerPlayer *p, room->getAlivePlayers()) {
+        foreach(ServerPlayer *p, room->getAlivePlayers()) {
             if (p->getMark("@liangzhu_draw") > 0 && p->isWounded()) {
                 flag = true;
                 break;
@@ -84,7 +85,7 @@ public:
             room->setPlayerMark(player, "fanxiang", 1);
             if (room->changeMaxHpForAwakenSkill(player, 1) && player->getMark("fanxiang") > 0) {
 
-                foreach (ServerPlayer *p, room->getAllPlayers()) {
+                foreach(ServerPlayer *p, room->getAllPlayers()) {
                     if (p->getMark("@liangzhu_draw") > 0)
                         room->setPlayerMark(p, "@liangzhu_draw", 0);
                 }
@@ -123,13 +124,15 @@ public:
                     data = QVariant::fromValue(use);
                 }
             }
-        } else if (triggerEvent == CardUsed) {
+        }
+        else if (triggerEvent == CardUsed) {
             CardUseStruct use = data.value<CardUseStruct>();
             if (TriggerSkill::triggerable(use.from)) {
                 if (use.card != NULL && use.card->isKindOf("Slash") && use.card->isVirtualCard() && use.card->subcardsLength() == 1 && Sanguosha->getCard(use.card->getSubcards().first())->isKindOf("EquipCard"))
                     use.card->setFlags("nuzhan_slash");
             }
-        } else if (triggerEvent == ConfirmDamage) {
+        }
+        else if (triggerEvent == ConfirmDamage) {
             DamageStruct damage = data.value<DamageStruct>();
             if (damage.card != NULL && damage.card->hasFlag("nuzhan_slash")) {
                 if (damage.from != NULL)
@@ -363,7 +366,8 @@ public:
                 QStringList l = s.toList();
                 room->setPlayerProperty(player, "chixin", l.join("+"));
             }
-        } else if (player->getPhase() == Player::Play)
+        }
+        else if (player->getPhase() == Player::Play)
             room->setPlayerProperty(player, "chixin", QString());
 
         return false;
@@ -394,7 +398,7 @@ public:
         room->broadcastSkillInvoke(objectName());
         room->doSuperLightbox("jsp_zhaoyun", "suiren");
         room->setPlayerMark(target, "@suiren", 0);
-        
+
         room->handleAcquireDetachSkills(target, "-yicong");
         int maxhp = target->getMaxHp() + 1;
         room->setPlayerProperty(target, "maxhp", maxhp);
@@ -422,11 +426,11 @@ void JiqiaoCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &) 
     room->moveCardsAtomic(move, true);
     room->getThread()->delay();
     room->getThread()->delay();
-    
+
     DummyCard get;
     DummyCard thro;
 
-    foreach (int id, card_ids) {
+    foreach(int id, card_ids) {
         const Card *c = Sanguosha->getCard(id);
         if (c == NULL)
             continue;
@@ -572,13 +576,15 @@ public:
         if (triggerEvent == EventLoseSkill && data.toString() == "linglong") {
             room->handleAcquireDetachSkills(player, "-qicai", true);
             player->setMark("linglong_qicai", 0);
-        } else if ((triggerEvent == EventAcquireSkill && data.toString() == "linglong") || (triggerEvent == GameStart && TriggerSkill::triggerable(player))) {
+        }
+        else if ((triggerEvent == EventAcquireSkill && data.toString() == "linglong") || (triggerEvent == GameStart && TriggerSkill::triggerable(player))) {
             if (player->getTreasure() == NULL) {
                 room->notifySkillInvoked(player, objectName());
                 room->handleAcquireDetachSkills(player, "qicai");
                 player->setMark("linglong_qicai", 1);
             }
-        } else if (triggerEvent == CardsMoveOneTime && player->isAlive() && player->hasSkill("linglong", true)) {
+        }
+        else if (triggerEvent == CardsMoveOneTime && player->isAlive() && player->hasSkill("linglong", true)) {
             CardsMoveOneTimeStruct move = data.value<CardsMoveOneTimeStruct>();
             if (move.from == player && move.from_places.contains(Player::PlaceEquip)) {
                 if (player->getTreasure() == NULL && player->getMark("linglong_qicai") == 0) {
@@ -586,7 +592,8 @@ public:
                     room->handleAcquireDetachSkills(player, "qicai");
                     player->setMark("linglong_qicai", 1);
                 }
-            } else if (move.to == player && move.to_place == Player::PlaceEquip) {
+            }
+            else if (move.to == player && move.to_place == Player::PlaceEquip) {
                 if (player->getTreasure() != NULL && player->getMark("linglong_qicai") == 1) {
                     room->handleAcquireDetachSkills(player, "-qicai", true);
                     player->setMark("linglong_qicai", 0);
@@ -615,42 +622,96 @@ public:
     }
 };
 
+JSPShichouCard::JSPShichouCard()
+{
+
+}
+
+bool JSPShichouCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
+{
+    return to_select->hasFlag("JSPShichouOptionalTarget") && targets.length() < Self->getLostHp();
+}
+
+void JSPShichouCard::use(Room *room, ServerPlayer *, QList<ServerPlayer *> &targets) const
+{
+    foreach(ServerPlayer *p, targets)
+        room->setPlayerFlag(p, "JSPShichouTarget");
+}
+
+class JSPShichouVS : public ZeroCardViewAsSkill
+{
+public:
+    JSPShichouVS() : ZeroCardViewAsSkill("jspshichou")
+    {
+    }
+
+    bool isEnabledAtPlay(const Player *) const
+    {
+        return false;
+    }
+
+    bool isEnabledAtResponse(const Player *, const QString &pattern) const
+    {
+        return pattern == "@@jspshichou";
+    }
+
+    const Card *viewAs() const
+    {
+        return new JSPShichouCard;
+    }
+};
+
 class JSPShichou : public TriggerSkill
 {
 public:
     JSPShichou() : TriggerSkill("jspshichou")
     {
-        events << CardUsed;
-        frequency = NotCompulsory;
+        events << TargetSpecifying;
+        view_as_skill = new JSPShichouVS;
     }
 
-    bool triggerable(const ServerPlayer *target) const
+    bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
     {
-        return target != NULL;
-    }
-
-    bool trigger(TriggerEvent , Room *room, ServerPlayer *, QVariant &data) const
-    {
+        if (!player->isWounded())
+            return false;
         CardUseStruct useStruct = data.value<CardUseStruct>();
         if (useStruct.card->isKindOf("Slash") && useStruct.from->hasSkill(this))
-            room->broadcastSkillInvoke(objectName());
-		return false;
-    }
-};
+        {
+            QList<ServerPlayer *> targets;
+            foreach(ServerPlayer *p, room->getOtherPlayers(player))
+            {
+                if (!useStruct.to.contains(p) && player->canSlash(p, useStruct.card))
+                {
+                    targets.append(p);
+                }
+            }
 
-class JSPShichouTMD : public TargetModSkill
-{
-public:
-    JSPShichouTMD() : TargetModSkill("#jspshichou-tmd")
-    {
-
-    }
-
-    int getExtraTargetNum(const Player *from, const Card *) const
-    {
-        if (from->hasSkill(this))
-            return from->getLostHp();
-        return 0;
+            if (!targets.isEmpty())
+            {
+                if (player->askForSkillInvoke(this, data, false))
+                {
+                    foreach(ServerPlayer* p, targets)
+                        room->setPlayerFlag(p, "JSPShichouOptionalTarget");
+                    QString promptStr = QString("@@jspshichou-invoke:%1:%2:%3").arg(player->objectName()).arg(QString()).arg(player->getLostHp());
+                    if (room->askForUseCard(player, "@@jspshichou", promptStr))
+                    {
+                        foreach(ServerPlayer *p, targets)
+                        {
+                            if (p->hasFlag("JSPShichouTarget"))
+                            {
+                                room->setPlayerFlag(p, "-JSPShichouTarget");
+                                useStruct.to.append(p);
+                            }
+                        }
+                        room->sortByActionOrder(useStruct.to);
+                        data = QVariant::fromValue(useStruct);
+                    }
+                    foreach(ServerPlayer* p, targets)
+                        room->setPlayerFlag(p, "-JSPShichouOptionalTarget");
+                }
+            }
+        }
+        return false;
     }
 };
 
@@ -828,7 +889,7 @@ public:
 
         Room *room = player->getRoom();
         QList<ServerPlayer *> targets;
-        foreach (ServerPlayer *p, room->getOtherPlayers(player)) {
+        foreach(ServerPlayer *p, room->getOtherPlayers(player)) {
             if (p->isMale())
                 targets << p;
         }
@@ -852,7 +913,7 @@ public:
 
                 if (!target->isLord())
                 {
-                    foreach (const Skill *sk, target->getVisibleSkillList()) {
+                    foreach(const Skill *sk, target->getVisibleSkillList()) {
                         if (sk->isLordSkill() && !player->hasSkill(sk))
                         {
                             room->acquireSkill(target, sk->objectName());
@@ -874,8 +935,6 @@ JSPPackage::JSPPackage()
     General *jsp_machao = new General(this, "jsp_machao", "qun");
     jsp_machao->addSkill(new JSPZhuiji);
     jsp_machao->addSkill(new JSPShichou);
-    jsp_machao->addSkill(new JSPShichouTMD);
-    related_skills.insertMulti("jspshichou", "#jspshichou-tmd");
 
     General *jsp_guanyu = new General(this, "jsp_guanyu", "wei"); // JSP 003
     jsp_guanyu->addSkill("wusheng");
@@ -909,6 +968,7 @@ JSPPackage::JSPPackage()
     skills << new Nuzhan;
 
     addMetaObject<JiqiaoCard>();
+    addMetaObject<JSPShichouCard>();
     addMetaObject<JSPJianshuCard>();
 }
 

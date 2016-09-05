@@ -303,5 +303,29 @@ return {
 	["nosguixin:obtain"] = "获得一项主公技",
 	["nosguixin_kingdom"] = "归心-改变势力",
 	["nosguixin_lordskills"] = "归心-获得技能",
+	
+	["#nos_yujin"] = "魏武之刚",
+	["nos_yujin"] = "于禁",
+	["designer:nos_yujin"] = "城管无畏",
+	["illustrator:nos_yujin"] = "Yi章",
+	["yizhong"] = "毅重",
+	[":yizhong"] = "锁定技。若你的装备区没有防具牌，黑色【杀】对你无效。",
+	
+	["#nos_masu"] = "怀才自负",
+	["nos_masu"] = "马谡",
+	["designer:nos_masu"] = "点点",
+	["illustrator:nos_masu"] = "张帅",
+	["xinzhan"] = "心战",
+	[":xinzhan"] = "阶段技。若你的手牌数大于你的体力上限，你可以观看牌堆顶的三张牌，然后你可以展示并获得其中至少一张红桃牌，然后将其余的牌置于牌堆顶。",
+	["huilei"] = "挥泪",
+	[":huilei"] = "锁定技。你死亡时，杀死你的其他角色弃置其所有牌。",
+	["#HuileiThrow"] = "%from 的“%arg”被触发，伤害来源 %to 弃置所有牌",
+	
+	["#nos_xusheng"] = "江东的铁壁",
+	["nos_xusheng"] = "徐盛",
+	["designer:nos_xusheng"] = "阿江",
+	["illustrator:nos_xusheng"] = "天空之城",
+	["nospojun"] = "破军",
+	[":nospojun"] = "每当你使用【杀】对目标角色造成伤害后，你可以令其摸X张牌，然后将其武将牌翻面。（X为该角色的体力值且至多为5）",
 }
 

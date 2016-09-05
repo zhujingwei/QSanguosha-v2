@@ -85,7 +85,7 @@ public:
         else
             jink = data.value<CardResponseStruct>().m_card;
 
-        if (jink && jink->isKindOf("Jink")) {
+        if (jink && jink->isKindOf("Jink") && player->hasSkill(this)) {
             QList<ServerPlayer *> others = room->getOtherPlayers(player);
             ServerPlayer *victim = room->askForPlayerChosen(player, others, "leiji", "@leiji", true, true);
             if (!victim)

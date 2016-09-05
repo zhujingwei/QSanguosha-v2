@@ -3,14 +3,6 @@
 
 #include "package.h"
 
-class TaiwanSPPackage : public Package
-{
-    Q_OBJECT
-
-public:
-    TaiwanSPPackage();
-};
-
 class TaiwanYJCMPackage : public Package
 {
     Q_OBJECT

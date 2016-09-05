@@ -254,12 +254,11 @@ public:
         if (damage.card && damage.card->isKindOf("Slash") && !zhurong->isKongcheng()
             && !target->isKongcheng() && !target->hasFlag("Global_DebutFlag") && !damage.chain && !damage.transfer
             && room->askForSkillInvoke(zhurong, objectName(), data)) {
-            room->broadcastSkillInvoke(objectName(), 1);
+            room->broadcastSkillInvoke(objectName());
 
             bool success = zhurong->pindian(target, "lieren", NULL);
             if (!success) return false;
 
-            room->broadcastSkillInvoke(objectName(), 2);
             if (!target->isNude()) {
                 int card_id = room->askForCardChosen(zhurong, target, "he", objectName());
                 CardMoveReason reason(CardMoveReason::S_REASON_EXTRACTION, zhurong->objectName());

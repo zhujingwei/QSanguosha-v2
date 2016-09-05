@@ -981,3 +981,119 @@ sgs.ai_skill_use_func.QiceCard = function(card, use, self)
 end
 
 sgs.ai_use_priority.QiceCard = 1.5
+
+sgs.ai_skill_invoke.quanji = function(self, data)
+	local current = self.room:getCurrent()
+	local juece_effect = (current and current:isAlive() and current:getPhase() ~= sgs.Player_NotActive and self:isEnemy(current) and current:hasSkill("juece"))
+	local manjuan_effect = hasManjuanEffect(self.player)
+	if self.player:isKongcheng() then
+		if manjuan_effect or juece_effect then return false end
+	elseif self.player:getHandcardNum() == 1 then
+		if manjuan_effect and juece_effect then return false end
+	end
+	return true
+end
+
+sgs.ai_skill_discard.quanji = function(self)
+	local to_discard = {}
+	local cards = self.player:getHandcards()
+	cards = sgs.QList2Table(cards)
+	self:sortByKeepValue(cards)
+
+	table.insert(to_discard, cards[1]:getEffectiveId())
+
+	return to_discard
+end
+
+sgs.ai_skill_choice.zili = function(self, choice)
+	if self.player:getHp() < self.player:getMaxHp()-1 then return "recover" end
+	return "draw"
+end
+
+local paiyi_skill = {}
+paiyi_skill.name = "paiyi"
+table.insert(sgs.ai_skills, paiyi_skill)
+paiyi_skill.getTurnUseCard = function(self)
+	if not (self.player:getPile("power"):isEmpty()
+		or self.player:hasUsed("PaiyiCard")) then
+		return sgs.Card_Parse("@PaiyiCard=" .. self.player:getPile("power"):first())
+	end
+	return nil
+end
+
+sgs.ai_skill_use_func.PaiyiCard = function(card, use, self)
+	local target
+	self:sort(self.friends_noself, "defense")
+	for _, friend in ipairs(self.friends_noself) do
+		if friend:getHandcardNum() < 2 and friend:getHandcardNum() + 1 < self.player:getHandcardNum()
+		  and not self:needKongcheng(friend, true) and not friend:hasSkill("manjuan") then
+			target = friend
+		end
+		if target then break end
+	end
+	if not target then
+		if self.player:getHandcardNum() < self.player:getHp() + self.player:getPile("power"):length() - 1 then
+			target = self.player
+		end
+	end
+	self:sort(self.friends_noself, "hp")
+	self.friends_noself = sgs.reverse(self.friends_noself)
+	if not target then
+		for _, friend in ipairs(self.friends_noself) do
+			if friend:getHandcardNum() + 2 > self.player:getHandcardNum()
+			  and (self:getDamagedEffects(friend, self.player) or self:needToLoseHp(friend, self.player, nil, true))
+			  and not friend:hasSkill("manjuan") then
+				target = friend
+			end
+			if target then break end
+		end
+	end
+	self:sort(self.enemies, "defense")
+	if not target then
+		for _, enemy in ipairs(self.enemies) do
+			if enemy:hasSkill("manjuan")
+				and not (self:hasSkills(sgs.masochism_skill, enemy) and not self.player:hasSkill("jueqing"))
+				and self:damageIsEffective(enemy, sgs.DamageStruct_Normal, self.player)
+				and not (self:getDamagedEffects(enemy, self.player) or self:needToLoseHp(enemy))
+				and enemy:getHandcardNum() > self.player:getHandcardNum() then
+				target = enemy
+			end
+			if target then break end
+		end
+		if not target then
+			for _, enemy in ipairs(self.enemies) do
+				if not (self:hasSkills(sgs.masochism_skill, enemy) and not self.player:hasSkill("jueqing"))
+					and not enemy:hasSkills(sgs.cardneed_skill .. "|jijiu|tianxiang|buyi")
+					and self:damageIsEffective(enemy, sgs.DamageStruct_Normal, self.player) and not self:cantbeHurt(enemy)
+					and not (self:getDamagedEffects(enemy, self.player) or self:needToLoseHp(enemy))
+					and enemy:getHandcardNum() + 2 > self.player:getHandcardNum()
+					and not enemy:hasSkill("manjuan") then
+					target = enemy
+				end
+				if target then break end
+			end
+		end
+	end
+
+	if target then
+		use.card = sgs.Card_Parse("@PaiyiCard=" .. self.player:getPile("power"):first())
+		if use.to then
+			use.to:append(target)
+		end
+	end
+end
+
+sgs.ai_skill_askforag.paiyi = function(self, card_ids)
+	return card_ids[math.random(1, #card_ids)]
+end
+
+sgs.ai_card_intention.PaiyiCard = function(self, card, from, tos)
+	local to = tos[1]
+	if to:objectName() == from:objectName() then return end
+	if not to:hasSkill("manjuan")
+		and ((to:getHandcardNum() < 2 and to:getHandcardNum() + 1 < from:getHandcardNum() and not self:needKongcheng(to, true))
+			or (to:getHandcardNum() + 2 > from:getHandcardNum() and (self:getDamagedEffects(to, from) or self:needToLoseHp(to, from)))) then
+	else
+		sgs.updateIntention(from, to, 60)
+	end
+end

@@ -1982,224 +1982,6 @@ sgs.ai_skill_choice.zhanyi_slash = function(self, choices)
 	return "slash"
 end
 
---马谡
---散谣
---SanyaoCard:Play
-local sanyao_skill = {
-	name = "sanyao",
-	getTurnUseCard = function(self, inclusive)
-		if self.player:hasUsed("SanyaoCard") then
-			return nil
-		elseif self.player:canDiscard(self.player, "he") then
-			return sgs.Card_Parse("@SanyaoCard=.")
-		end
-	end,
-}
-table.insert(sgs.ai_skills, sanyao_skill)
-sgs.ai_skill_use_func["SanyaoCard"] = function(card, use, self)
-	local alives = self.room:getAlivePlayers()
-	local max_hp = -1000
-	for _,p in sgs.qlist(alives) do
-		local hp = p:getHp()
-		if hp > max_hp then
-			max_hp = hp
-		end
-	end
-	local friends, enemies = {}, {}
-	for _,p in sgs.qlist(alives) do
-		if p:getHp() == max_hp then
-			if self:isFriend(p) then
-				table.insert(friends, p)
-			elseif self:isEnemy(p) then
-				table.insert(enemies, p)
-			end
-		end
-	end
-	local target = nil
-	if #enemies > 0 then
-		self:sort(enemies, "hp")
-		for _,enemy in ipairs(enemies) do
-			if self:damageIsEffective(enemy, sgs.DamageStruct_Normal, self.player) then
-				if self:cantbeHurt(enemy, self.player) then
-				elseif self:needToLoseHp(enemy, self.player, false) then
-				elseif self:getDamagedEffects(enemy, self.player, false) then
-				else
-					target = enemy
-					break
-				end
-			end
-		end
-	end
-	if #friends > 0 and not target then
-		self:sort(friends, "hp")
-		friends = sgs.reverse(friends)
-		for _,friend in ipairs(friends) do
-			if self:damageIsEffective(friend, sgs.DamageStruct_Normal, self.player) then
-				if self:needToLoseHp(friend, self.player, false) then
-				elseif friend:getCards("j"):length() > 0 and self.player:hasSkill("zhiman") then
-				elseif self:needToThrowArmor(friend) and self.player:hasSkill("zhiman") then
-					target = friend
-					break
-				end
-			end
-		end
-	end
-	if target then
-		local cost = self:askForDiscard("dummy", 1, 1, false, true)
-		if #cost == 1 then
-			local card_str = "@SanyaoCard="..cost[1]
-			local acard = sgs.Card_Parse(card_str)
-			use.card = acard
-			if use.to then
-				use.to:append(target)
-			end
-		end
-	end
-end
-sgs.ai_use_value["SanyaoCard"] = 1.75
-sgs.ai_card_intention["SanyaoCard"] = function(self, card, from, tos)
-	local target = tos[1]
-	if getBestHp(target) > target:getHp() then
-		return
-	elseif self:needToLoseHp(target, from, false) then
-		return
-	elseif self:getDamagedEffects(target, from, false) then
-		return
-	end
-	sgs.updateIntention(from, target, 30)
-end
---制蛮
---player->askForSkillInvoke(this, data)
-sgs.ai_skill_invoke["zhiman"] = sgs.ai_skill_invoke["yishi"]
---room->askForCardChosen(player, damage.to, "ej", objectName())
-
---于禁
---节钺
---room->askForExchange(effect.to, "jieyue", 1, 1, true, QString("@jieyue_put:%1").arg(effect.from->objectName()), true)
-sgs.ai_skill_discard["jieyue"] = function(self, discard_num, min_num, optional, include_equip)
-	local source = self.room:getCurrent()
-	if source and self:isEnemy(source) then
-		return {}
-	end
-	return self:askForDiscard("dummy", discard_num, min_num, false, include_equip)
-end
---room->askForCardChosen(effect.from, effect.to, "he", objectName(), false, Card::MethodDiscard)
---room->askForUseCard(player, "@@jieyue", "@jieyue", -1, Card::MethodDiscard, false)
-sgs.ai_skill_use["@@jieyue"] = function(self, prompt, method)
-	if self.player:isKongcheng() then
-		return "."
-	elseif #self.enemies == 0 then
-		return "."
-	end
-	local handcards = self.player:getHandcards()
-	handcards = sgs.QList2Table(handcards)
-	self:sortByKeepValue(handcards)
-	local to_use = nil
-	local isWeak = self:isWeak()
-	local isDanger = isWeak and ( self.player:getHp() + self:getAllPeachNum() <= 1 )
-	for _,card in ipairs(handcards) do
-		if self.player:isJilei(card) then
-		elseif card:isKindOf("Peach") or card:isKindOf("ExNihilo") then
-		elseif isDanger and card:isKindOf("Analeptic") then
-		elseif isWeak and card:isKindOf("Jink") then
-		else
-			to_use = card
-			break
-		end
-	end
-	if not to_use then
-		return "."
-	end
-	if #self.friends_noself > 0 then
-		local has_black, has_red = false, false
-		local need_null, need_jink = false, false
-		for _,card in ipairs(handcards) do
-			if card:getEffectiveId() ~= to_use:getEffectiveId() then
-				if card:isRed() then
-					has_red = true
-					break
-				end
-			end
-		end
-		for _,card in ipairs(handcards) do
-			if card:getEffectiveId() ~= to_use:getEffectiveId() then
-				if card:isBlack() then
-					has_black = true
-					break
-				end
-			end
-		end
-		if has_black then
-			local f_num = self:getCardsNum("Nullification", "he", true)
-			local e_num = 0
-			for _,friend in ipairs(self.friends_noself) do
-				f_num = f_num + getCardsNum("Nullification", friend, self.player)
-			end
-			for _,enemy in ipairs(self.enemies) do
-				e_num = e_num + getCardsNum("Nullification", enemy, self.player)
-			end
-			if f_num < e_num then
-				need_null = true
-			end
-		end
-		if has_red and not need_null then
-			if self:getCardsNum("Jink", "he", false) == 0 then
-				need_jink = true
-			else
-				for _,friend in ipairs(self.friends_noself) do
-					if getCardsNum("Jink", friend, self.player) == 0 then
-						if friend:hasLordSkill("hujia") and self.player:getKingdom() == "wei" then
-							need_jink = true
-							break
-						elseif friend:hasSkill("lianli") and self.player:isMale() then
-							need_jink = true
-							break
-						end
-					end
-				end
-			end
-		end
-		if need_jink or need_null then
-			self:sort(self.friends_noself, "defense")
-			self.friends_noself = sgs.reverse(self.friends_noself)
-			for _,friend in ipairs(self.friends_noself) do
-				if not friend:isNude() then
-					local card_str = "@JieyueCard="..to_use:getEffectiveId().."->"..friend:objectName()
-					return card_str
-				end
-			end
-		end
-	end
-	local target = self:findPlayerToDiscard("he", false, true)
-	if target then
-		local card_str = "@JieyueCard="..to_use:getEffectiveId().."->"..target:objectName()
-		return card_str
-	end
-	local targets = self:findPlayerToDiscard("he", false, false, nil, true)
-	for _,friend in ipairs(targets) do
-		if not self:isEnemy(friend) then
-			local card_str = "@JieyueCard="..to_use:getEffectiveId().."->"..friend:objectName()
-			return card_str
-		end
-	end
-	return "."
-end
---jieyue:Response
-sgs.ai_view_as["jieyue"] = function(card, player, card_place, class_name)
-	if not player:getPile("jieyue_pile"):isEmpty() then
-		if card_place == sgs.Player_PlaceHand then
-			local suit = card:getSuitString()
-			local point = card:getNumber()
-			local id = card:getEffectiveId()
-			if class_name == "Jink" and card:isRed() then
-				return string.format("jink:jieyue[%s:%d]=%d", suit, point, id)
-			elseif class_name == "Nullification" and card:isBlack() then
-				return string.format("nullification:jieyue[%s:%d]=%d", suit, point, id)
-			end
-		end
-	end
-end
-
 --刘表
 --自守
 --player->askForSkillInvoke(this)
@@ -2572,37 +2354,37 @@ sgs.ai_skill_choice.liangzhu = function(self, choices, data)
 	return "draw"
 end
 
-sgs.ai_skill_invoke.cihuai = function(self, data)
-	local has_slash = false
-	local cards = self.player:getCards("h")
-	cards=sgs.QList2Table(cards)
-	for _, card in ipairs(cards) do
-		if card:isKindOf("Slash") then has_slash = true end
-	end
-	if has_slash then return false end
+sgs.ai_skill_invoke.jspshichou = true
 
-	self:sort(self.enemies, "defenseSlash")
-	for _, enemy in ipairs(self.enemies) do
-		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
-		local eff = self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
-		if eff and self.player:canSlash(enemy) and not self:slashProhibit(nil, enemy) then
-			return true
+sgs.ai_skill_use["@@jspshichou"] = function(self, prompt)
+	local targets = {}
+	local targetNum = self.player:getLostHp()
+	
+	for _, friend in ipairs(self.friends_noself) do
+		if targetNum > 0 then
+			if friend:hasFlag("JSPShichouOptionalTarget") and self:needToLoseHp(friend) then
+				table.insert(targets, friend:objectName())
+				targetNum = targetNum - 1
+			end
 		end
 	end
-
-return false
-end
-
-local cihuai_skill = {}
-cihuai_skill.name = "cihuai"
-table.insert(sgs.ai_skills, cihuai_skill)
-cihuai_skill.getTurnUseCard = function(self)
-	if self.player:getMark("@cihuai") > 0 then
-		local card_str = ("slash:_cihuai[no_suit:0]=.")
-		local slash = sgs.Card_Parse(card_str)
-		assert(slash)
-		return slash
+	
+	self:sort(self.enemies)
+	for _, enemy in ipairs(self.enemies) do
+		if targetNum > 0 then
+			if enemy:hasFlag("JSPShichouOptionalTarget") and not self:needToLoseHp(enemy) then
+				table.insert(targets, enemy:objectName())
+				targetNum = targetNum - 1
+			end
+		end
 	end
+	
+	
+	if #targets ~= 0 then
+		return "@JSPShichouCard=.->" .. table.concat(targets, "+")
+	end
+	
+	return "."
 end
 
 sgs.ai_skill_invoke.kunfen = function(self, data)

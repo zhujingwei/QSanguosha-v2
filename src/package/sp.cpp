@@ -213,7 +213,7 @@ bool Yongsi::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *yuansh
         room->sendLog(log);
         room->notifySkillInvoked(yuanshu, objectName());
 
-        room->broadcastSkillInvoke("yongsi", x % 2 + 1);
+        room->broadcastSkillInvoke(objectName());
     } else if (triggerEvent == EventPhaseStart && yuanshu->getPhase() == Player::Discard) {
         int x = getKingdoms(yuanshu);
         LogMessage log;
@@ -223,6 +223,7 @@ bool Yongsi::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *yuansh
         log.arg2 = objectName();
         room->sendLog(log);
         room->notifySkillInvoked(yuanshu, objectName());
+        room->broadcastSkillInvoke(objectName());
         if (x > 0)
             room->askForDiscard(yuanshu, "yongsi", x, x, false, true);
     }
@@ -1198,197 +1199,6 @@ public:
             }
         }
         return false;
-    }
-};
-
-class Yanyu : public TriggerSkill
-{
-public:
-    Yanyu() : TriggerSkill("yanyu")
-    {
-        events << EventPhaseStart << BeforeCardsMove << EventPhaseChanging;
-    }
-
-    bool triggerable(const ServerPlayer *target) const
-    {
-        return target != NULL;
-    }
-
-    bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
-    {
-        if (triggerEvent == EventPhaseStart) {
-            ServerPlayer *xiahou = room->findPlayerBySkillName(objectName());
-            if (xiahou && player->getPhase() == Player::Play) {
-                if (!xiahou->canDiscard(xiahou, "he")) return false;
-                const Card *card = room->askForCard(xiahou, "..", "@yanyu-discard", QVariant(), objectName());
-                if (card) {
-                    room->broadcastSkillInvoke(objectName(), 1);
-                    xiahou->addMark("YanyuDiscard" + QString::number(card->getTypeId()), 3);
-                }
-            }
-        } else if (triggerEvent == BeforeCardsMove && TriggerSkill::triggerable(player)) {
-            ServerPlayer *current = room->getCurrent();
-            if (!current || current->getPhase() != Player::Play) return false;
-            CardsMoveOneTimeStruct move = data.value<CardsMoveOneTimeStruct>();
-            if (move.to_place == Player::DiscardPile) {
-                QList<int> ids, disabled;
-                QList<int> all_ids = move.card_ids;
-                foreach (int id, move.card_ids) {
-                    const Card *card = Sanguosha->getCard(id);
-                    if (player->getMark("YanyuDiscard" + QString::number(card->getTypeId())) > 0)
-                        ids << id;
-                    else
-                        disabled << id;
-                }
-                if (ids.isEmpty()) return false;
-                while (!ids.isEmpty()) {
-                    room->fillAG(all_ids, player, disabled);
-                    bool only = (all_ids.length() == 1);
-                    int card_id = -1;
-                    if (only)
-                        card_id = ids.first();
-                    else
-                        card_id = room->askForAG(player, ids, true, objectName());
-                    room->clearAG(player);
-                    if (card_id == -1) break;
-                    if (only)
-                        player->setMark("YanyuOnlyId", card_id + 1); // For AI
-                    const Card *card = Sanguosha->getCard(card_id);
-                    ServerPlayer *target = room->askForPlayerChosen(player, room->getAlivePlayers(), objectName(),
-                        QString("@yanyu-give:::%1:%2\\%3").arg(card->objectName())
-                        .arg(card->getSuitString() + "_char")
-                        .arg(card->getNumberString()),
-                        only, true);
-                    player->setMark("YanyuOnlyId", 0);
-                    if (target) {
-                        player->removeMark("YanyuDiscard" + QString::number(card->getTypeId()));
-                        Player::Place place = move.from_places.at(move.card_ids.indexOf(card_id));
-                        QList<int> _card_id;
-                        _card_id << card_id;
-                        move.removeCardIds(_card_id);
-                        data = QVariant::fromValue(move);
-                        ids.removeOne(card_id);
-                        disabled << card_id;
-                        foreach (int id, ids) {
-                            const Card *card = Sanguosha->getCard(id);
-                            if (player->getMark("YanyuDiscard" + QString::number(card->getTypeId())) == 0) {
-                                ids.removeOne(id);
-                                disabled << id;
-                            }
-                        }
-                        if (move.from && move.from->objectName() == target->objectName() && place != Player::PlaceTable) {
-                            // just indicate which card she chose...
-                            LogMessage log;
-                            log.type = "$MoveCard";
-                            log.from = target;
-                            log.to << target;
-                            log.card_str = QString::number(card_id);
-                            room->sendLog(log);
-                        }
-
-                        room->broadcastSkillInvoke(objectName(), 2);
-                        target->obtainCard(card);
-                    } else
-                        break;
-                }
-            }
-        } else if (triggerEvent == EventPhaseChanging) {
-            PhaseChangeStruct change = data.value<PhaseChangeStruct>();
-            if (change.to == Player::NotActive) {
-                foreach (ServerPlayer *p, room->getAlivePlayers()) {
-                    p->setMark("YanyuDiscard1", 0);
-                    p->setMark("YanyuDiscard2", 0);
-                    p->setMark("YanyuDiscard3", 0);
-                }
-            }
-        }
-        return false;
-    }
-};
-
-class Xiaode : public TriggerSkill
-{
-public:
-    Xiaode() : TriggerSkill("xiaode")
-    {
-        events << BuryVictim;
-    }
-
-    int getPriority(TriggerEvent) const
-    {
-        return -2;
-    }
-
-    bool triggerable(const ServerPlayer *target) const
-    {
-        return target != NULL;
-    }
-
-    bool trigger(TriggerEvent, Room *room, ServerPlayer *, QVariant &) const
-    {
-        ServerPlayer *xiahoushi = room->findPlayerBySkillName(objectName());
-        if (!xiahoushi || !xiahoushi->tag["XiaodeSkill"].toString().isEmpty()) return false;
-        QStringList skill_list = xiahoushi->tag["XiaodeVictimSkills"].toStringList();
-        if (skill_list.isEmpty()) return false;
-        if (!room->askForSkillInvoke(xiahoushi, objectName(), QVariant::fromValue(skill_list))) return false;
-        QString skill_name = room->askForChoice(xiahoushi, objectName(), skill_list.join("+"));
-        room->broadcastSkillInvoke(objectName());
-        xiahoushi->tag["XiaodeSkill"] = skill_name;
-        room->acquireSkill(xiahoushi, skill_name);
-        return false;
-    }
-};
-
-class XiaodeEx : public TriggerSkill
-{
-public:
-    XiaodeEx() : TriggerSkill("#xiaode")
-    {
-        events << EventPhaseChanging << EventLoseSkill << Death;
-    }
-
-    bool triggerable(const ServerPlayer *target) const
-    {
-        return target != NULL;
-    }
-
-    bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
-    {
-        if (triggerEvent == EventPhaseChanging) {
-            PhaseChangeStruct change = data.value<PhaseChangeStruct>();
-            if (change.to == Player::NotActive) {
-                QString skill_name = player->tag["XiaodeSkill"].toString();
-                if (!skill_name.isEmpty()) {
-                    room->detachSkillFromPlayer(player, skill_name, false, true);
-                    player->tag.remove("XiaodeSkill");
-                }
-            }
-        } else if (triggerEvent == EventLoseSkill && data.toString() == "xiaode") {
-            QString skill_name = player->tag["XiaodeSkill"].toString();
-            if (!skill_name.isEmpty()) {
-                room->detachSkillFromPlayer(player, skill_name, false, true);
-                player->tag.remove("XiaodeSkill");
-            }
-        } else if (triggerEvent == Death && TriggerSkill::triggerable(player)) {
-            DeathStruct death = data.value<DeathStruct>();
-            QStringList skill_list;
-            skill_list.append(addSkillList(death.who->getGeneral()));
-            skill_list.append(addSkillList(death.who->getGeneral2()));
-            player->tag["XiaodeVictimSkills"] = QVariant::fromValue(skill_list);
-        }
-        return false;
-    }
-
-private:
-    QStringList addSkillList(const General *general) const
-    {
-        if (!general) return QStringList();
-        QStringList skill_list;
-        foreach (const Skill *skill, general->getSkillList()) {
-            if (skill->isVisible() && !skill->isLordSkill() && skill->getFrequency() != Skill::Wake)
-                skill_list.append(skill->objectName());
-        }
-        return skill_list;
     }
 };
 
@@ -3178,18 +2988,6 @@ SPPackage::SPPackage()
     erqiao->addSkill(new Xingwu);
     erqiao->addSkill(new Luoyan);
 
-    General *sp_shenlvbu = new General(this, "sp_shenlvbu", "god", 5, true, true); // SP 022
-    sp_shenlvbu->addSkill("kuangbao");
-    sp_shenlvbu->addSkill("wumou");
-    sp_shenlvbu->addSkill("wuqian");
-    sp_shenlvbu->addSkill("shenfen");
-
-    General *xiahoushi = new General(this, "xiahoushi", "shu", 3, false); // SP 023
-    xiahoushi->addSkill(new Yanyu);
-    xiahoushi->addSkill(new Xiaode);
-    xiahoushi->addSkill(new XiaodeEx);
-    related_skills.insertMulti("xiaode", "#xiaode");
-
     General *sp_yuejin = new General(this, "sp_yuejin", "wei", 4, true); // SP 024
     sp_yuejin->addSkill("xiaoguo");
 
@@ -3200,7 +2998,7 @@ SPPackage::SPPackage()
     General *caoang = new General(this, "caoang", "wei"); // SP 026
     caoang->addSkill(new Kangkai);
 
-    General *sp_zhugejin = new General(this, "sp_zhugejin", "wu", 3, true, true); // SP 027
+    General *sp_zhugejin = new General(this, "sp_zhugejin", "wu", 3); // SP 027
     sp_zhugejin->addSkill("hongyuan");
     sp_zhugejin->addSkill("huanshi");
     sp_zhugejin->addSkill("mingzhe");

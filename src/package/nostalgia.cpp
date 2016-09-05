@@ -253,78 +253,6 @@ public:
     }
 };
 
-class NosXuanfeng : public TriggerSkill
-{
-public:
-    NosXuanfeng() : TriggerSkill("nosxuanfeng")
-    {
-        events << CardsMoveOneTime;
-    }
-
-    bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *lingtong, QVariant &data) const
-    {
-        if (triggerEvent == CardsMoveOneTime) {
-            CardsMoveOneTimeStruct move = data.value<CardsMoveOneTimeStruct>();
-            if (move.from == lingtong && move.from_places.contains(Player::PlaceEquip)) {
-                QStringList choicelist;
-                choicelist << "nothing";
-                QList<ServerPlayer *> targets1;
-                foreach (ServerPlayer *target, room->getAlivePlayers()) {
-                    if (lingtong->canSlash(target, NULL, false))
-                        targets1 << target;
-                }
-                Slash *slashx = new Slash(Card::NoSuit, 0);
-                if (!targets1.isEmpty() && !lingtong->isCardLimited(slashx, Card::MethodUse))
-                    choicelist << "slash";
-                slashx->deleteLater();
-                QList<ServerPlayer *> targets2;
-                foreach (ServerPlayer *p, room->getOtherPlayers(lingtong)) {
-                    if (lingtong->distanceTo(p) <= 1)
-                        targets2 << p;
-                }
-                if (!targets2.isEmpty()) choicelist << "damage";
-
-                QString choice = room->askForChoice(lingtong, objectName(), choicelist.join("+"));
-                if (choice == "slash") {
-                    ServerPlayer *target = room->askForPlayerChosen(lingtong, targets1, "nosxuanfeng_slash", "@dummy-slash");
-                    room->broadcastSkillInvoke(objectName(), 1);
-                    Slash *slash = new Slash(Card::NoSuit, 0);
-                    slash->setSkillName(objectName());
-                    room->useCard(CardUseStruct(slash, lingtong, target));
-                } else if (choice == "damage") {
-                    room->broadcastSkillInvoke(objectName(), 2);
-
-                    LogMessage log;
-                    log.type = "#InvokeSkill";
-                    log.from = lingtong;
-                    log.arg = objectName();
-                    room->sendLog(log);
-                    room->notifySkillInvoked(lingtong, objectName());
-
-                    ServerPlayer *target = room->askForPlayerChosen(lingtong, targets2, "nosxuanfeng_damage", "@nosxuanfeng-damage");
-                    room->damage(DamageStruct("nosxuanfeng", lingtong, target));
-                }
-            }
-        }
-
-        return false;
-    }
-};
-
-class NosShangshi : public Shangshi
-{
-public:
-    NosShangshi() : Shangshi()
-    {
-        setObjectName("nosshangshi");
-    }
-
-    int getMaxLostHp(ServerPlayer *zhangchunhua) const
-    {
-        return qMin(zhangchunhua->getLostHp(), zhangchunhua->getMaxHp());
-    }
-};
-
 class NosFuhun : public TriggerSkill
 {
 public:
@@ -2354,6 +2282,179 @@ public:
     }
 };
 
+XinzhanCard::XinzhanCard()
+{
+    target_fixed = true;
+}
+
+void XinzhanCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &) const
+{
+    QList<int> cards = room->getNCards(3), left;
+
+    LogMessage log;
+    log.type = "$ViewDrawPile";
+    log.from = source;
+    log.card_str = IntList2StringList(cards).join("+");
+    room->sendLog(log, source);
+
+    left = cards;
+
+    QList<int> hearts, non_hearts;
+    foreach(int card_id, cards) {
+        const Card *card = Sanguosha->getCard(card_id);
+        if (card->getSuit() == Card::Heart)
+            hearts << card_id;
+        else
+            non_hearts << card_id;
+    }
+
+    if (!hearts.isEmpty()) {
+        DummyCard *dummy = new DummyCard;
+        do {
+            room->fillAG(left, source, non_hearts);
+            int card_id = room->askForAG(source, hearts, true, "xinzhan");
+            if (card_id == -1) {
+                room->clearAG(source);
+                break;
+            }
+
+            hearts.removeOne(card_id);
+            left.removeOne(card_id);
+
+            dummy->addSubcard(card_id);
+            room->clearAG(source);
+        } while (!hearts.isEmpty());
+
+        if (dummy->subcardsLength() > 0) {
+            room->doBroadcastNotify(QSanProtocol::S_COMMAND_UPDATE_PILE, QVariant(room->getDrawPile().length() + dummy->subcardsLength()));
+            source->obtainCard(dummy);
+            foreach(int id, dummy->getSubcards())
+                room->showCard(source, id);
+        }
+        delete dummy;
+    }
+
+    if (!left.isEmpty())
+        room->askForGuanxing(source, left, Room::GuanxingUpOnly);
+}
+
+class Xinzhan : public ZeroCardViewAsSkill
+{
+public:
+    Xinzhan() : ZeroCardViewAsSkill("xinzhan")
+    {
+    }
+
+    bool isEnabledAtPlay(const Player *player) const
+    {
+        return !player->hasUsed("XinzhanCard") && player->getHandcardNum() > player->getMaxHp();
+    }
+
+    const Card *viewAs() const
+    {
+        return new XinzhanCard;
+    }
+};
+
+class Huilei : public TriggerSkill
+{
+public:
+    Huilei() :TriggerSkill("huilei")
+    {
+        events << Death;
+        frequency = Compulsory;
+    }
+
+    bool triggerable(const ServerPlayer *target) const
+    {
+        return target != NULL && target->hasSkill(this);
+    }
+
+    bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
+    {
+        DeathStruct death = data.value<DeathStruct>();
+        if (death.who != player)
+            return false;
+        ServerPlayer *killer = death.damage ? death.damage->from : NULL;
+        if (killer && killer != player) {
+            LogMessage log;
+            log.type = "#HuileiThrow";
+            log.from = player;
+            log.to << killer;
+            log.arg = objectName();
+            room->sendLog(log);
+            room->notifySkillInvoked(player, objectName());
+
+            QString killer_name = killer->getGeneralName();
+            if (killer_name.contains("zhugeliang") || killer_name == "wolong")
+                room->broadcastSkillInvoke(objectName(), 1);
+            else
+                room->broadcastSkillInvoke(objectName(), 2);
+
+            killer->throwAllHandCardsAndEquips();
+        }
+
+        return false;
+    }
+};
+
+class Yizhong : public TriggerSkill
+{
+public:
+    Yizhong() : TriggerSkill("yizhong")
+    {
+        events << SlashEffected;
+        frequency = Compulsory;
+    }
+
+    bool triggerable(const ServerPlayer *target) const
+    {
+        return target != NULL && TriggerSkill::triggerable(target) && target->getArmor() == NULL;
+    }
+
+    bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
+    {
+        SlashEffectStruct effect = data.value<SlashEffectStruct>();
+        if (effect.slash->isBlack()) {
+            room->broadcastSkillInvoke(objectName());
+            room->notifySkillInvoked(player, objectName());
+
+            LogMessage log;
+            log.type = "#SkillNullify";
+            log.from = player;
+            log.arg = objectName();
+            log.arg2 = effect.slash->objectName();
+            room->sendLog(log);
+
+            return true;
+        }
+        return false;
+    }
+};
+
+class NosPojun : public TriggerSkill
+{
+public:
+    NosPojun() : TriggerSkill("nospojun")
+    {
+        events << Damage;
+    }
+
+    bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
+    {
+        DamageStruct damage = data.value<DamageStruct>();
+        if (damage.card && damage.card->isKindOf("Slash") && !damage.chain && !damage.transfer
+            && damage.to->isAlive() && !damage.to->hasFlag("Global_DebutFlag")
+            && room->askForSkillInvoke(player, objectName(), data)) {
+            int x = qMin(5, damage.to->getHp());
+            room->broadcastSkillInvoke(objectName(), (x >= 3 || !damage.to->faceUp()) ? 2 : 1);
+            damage.to->drawCards(x, objectName());
+            damage.to->turnOver();
+        }
+        return false;
+    }
+};
+
 NostalStandardPackage::NostalStandardPackage()
     : Package("nostal_standard")
 {
@@ -2472,21 +2573,23 @@ NostalYJCMPackage::NostalYJCMPackage()
     nos_fazheng->addSkill(new NosEnyuan);
     nos_fazheng->addSkill(new NosXuanhuo);
 
-    General *nos_lingtong = new General(this, "nos_lingtong", "wu");
-    nos_lingtong->addSkill(new NosXuanfeng);
-    nos_lingtong->addSkill(new SlashNoDistanceLimitSkill("nosxuanfeng"));
-    related_skills.insertMulti("nosxuanfeng", "#nosxuanfeng-slash-ndl");
-
     General *nos_xushu = new General(this, "nos_xushu", "shu", 3);
     nos_xushu->addSkill(new NosWuyan);
     nos_xushu->addSkill(new NosJujian);
 
-    General *nos_zhangchunhua = new General(this, "nos_zhangchunhua", "wei", 3, false);
-    nos_zhangchunhua->addSkill("jueqing");
-    nos_zhangchunhua->addSkill(new NosShangshi);
+    General *nos_masu = new General(this, "nos_masu", "shu", 3); // YJ 006
+    nos_masu->addSkill(new Xinzhan);
+    nos_masu->addSkill(new Huilei);
+
+    General *nos_yujin = new General(this, "nos_yujin", "wei"); // YJ 010
+    nos_yujin->addSkill(new Yizhong);
+
+    General *nos_xusheng = new General(this, "nos_xusheng", "wu"); // YJ 008
+    nos_xusheng->addSkill(new NosPojun);
 
     addMetaObject<NosXuanhuoCard>();
     addMetaObject<NosJujianCard>();
+    addMetaObject<XinzhanCard>();
 }
 
 NostalYJCM2012Package::NostalYJCM2012Package()

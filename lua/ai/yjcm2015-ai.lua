@@ -1,33 +1,57 @@
 sgs.ai_skill_playerchosen.huituo = function(self, targets)
-    self:sort(self.friends, "defense")
-    return self.friends[1]
+	if (self:isWeak()) then
+		return self.player
+	end
+	local friends = self:getWoundedFriend(false, true)
+    self:sort(friends, "defense")
+	if #friends == 0 then
+		return self.player
+	end
+    return friends[1]
 end
 
 sgs.ai_playerchosen_intention.huituo = -80
 
-sgs.ai_skill_playerchosen.mingjian = function(self, targets)
-    if (sgs.ai_skill_invoke.fangquan(self) or self:needKongcheng(self.player)) then
-        local cards = sgs.QList2Table(self.player:getHandcards())
-        self:sortByKeepValue(cards)
-        if sgs.current_mode_players.rebel == 0 then
-            local lord = self.room:getLord()
-            if lord and self:isFriend(lord) and lord:objectName() ~= self.player:objectName() then
-                return lord
-            end
-        end
-
-        local AssistTarget = self:AssistTarget()
-        if AssistTarget and not self:willSkipPlayPhase(AssistTarget) then
-            return AssistTarget
-        end
-
-        self:sort(self.friends_noself, "chaofeng")
-        return self.friends_noself[1]
-    end
-    return nil
+local mingjian_skill = {}
+mingjian_skill.name = "mingjian"
+table.insert(sgs.ai_skills, mingjian_skill)
+mingjian_skill.getTurnUseCard = function(self)
+	if self.player:hasUsed("MingjianCard") or self.player:isKongcheng() then return end
+	if self:needBear() then return end
+	local parsed_card = sgs.Card_Parse("@MingjianCard=.")
+	return parsed_card
 end
 
-sgs.ai_playerchosen_intention.mingjian = -80
+sgs.ai_skill_use_func.MingjianCard = function(card, use, self)
+	local handcardnum = self.player:getHandcardNum()
+	local target
+	self:sort(self.friends_noself, "defense")
+	self.friends_noself = sgs.reverse(self.friends_noself)
+	for _, friend in ipairs(self.friends_noself) do
+		if not friend:hasSkill("manjuan") then
+			target = friend
+			break
+		end
+	end
+	if target then
+		for _, acard in sgs.qlist(self.player:getHandcards()) do
+			if isCard("Peach", acard, self.player) and self.player:getHandcardNum() > 1 and self.player:isWounded()
+				and not self:needToLoseHp(self.player) then
+					use.card = acard
+					return
+			end
+		end
+		use.card = card
+		if use.to then
+			use.to:append(target)
+		end
+	end
+end
+
+sgs.ai_use_value.MingjianCard = 5
+sgs.ai_use_priority.MingjianCard = 1
+sgs.ai_card_intention.MingjianCard = -70
+sgs.dynamic_value.benefit.MingjianCard = true
 
 
 sgs.ai_skill_invoke.xingshuai = sgs.ai_skill_invoke.niepan
@@ -111,269 +135,21 @@ sgs.ai_choicemade_filter["skillInvoke"]["_xingshuai"] = function(self, player, p
     end
 end
 
--- taoxi buhui!!!
---player->askForSkillInvoke(objectName(), QVariant::fromValue(to))
-sgs.ai_skill_invoke["taoxi"] = function(self, data)
-    local to = data:toPlayer()
-    if to and self:isEnemy(to) then
+sgs.ai_skill_discard.qingxi = function(self, discard_num, min_num, optional, include_equip)
+	local to_discard = self:askForDiscard("dummyreason", discard_num, min_num, false, include_equip)
+	if #to_discard < discard_num then return {} end
+	for _, id in ipairs(to_discard) do
+		if isCard("Peach", sgs.Sanguosha:getCard(id), self.player) then return {}
+		elseif 1 == self.player:getHp() and isCard("Analeptic", sgs.Sanguosha:getCard(id), self.player) then return {}
+		end
+	end
+end
 
-        if self.player:hasSkill("lihun") and to:isMale() and not self.player:hasUsed("LihunCard") then
-            local callback = lihun_skill.getTurnUseCard
-            if type(callback) == "function" then
-                local skillcard = callback(self)
-                if skillcard then
-                    local dummy_use = {
-                        isDummy = true,
-                        to = sgs.SPlayerList(),
-                    }
-                    self:useSkillCard(skillcard, dummy_use)
-                    if dummy_use.card then
-                        for _,p in sgs.qlist(dummy_use.to) do
-                            if p:objectName() == to:objectName() then
-                                return true
-                            end
-                        end
-                    end
-                end
-            end
-        end
-
-        if self.player:hasSkill("dimeng") and not self.player:hasUsed("DimengCard") then
-            local callback = dimeng_skill.getTurnUseCard
-            if type(callback) == "function" then
-                local skillcard = callback(self)
-                if skillcard then
-                    local dummy_use = {
-                        isDummy = true,
-                        to = sgs.SPlayerList(),
-                    }
-                    self:useSkillCard(skillcard, dummy_use)
-                    if dummy_use.card then
-                        for _,p in sgs.qlist(dummy_use.to) do
-                            if p:objectName() == to:objectName() then
-                                return true
-                            end
-                        end
-                    end
-                end
-            end
-        end
-
-        local dismantlement_count = 0
-        if to:hasSkill("noswuyan") or to:getMark("@late") > 0 then
-            if self.player:hasSkill("yinling") then
-                local black = self:getSuitNum("spade|club", true)
-                local num = 4 - self.player:getPile("brocade"):length()
-                dismantlement_count = dismantlement_count + math.max(0, math.min(black, num))
-            end
-        else
-            dismantlement_count = dismantlement_count + self:getCardsNum("Dismantlement")
-            if self.player:distanceTo(to) == 1 or self:hasSkills("qicai|nosqicai") then
-                dismantlement_count = dismantlement_count + self:getCardsNum("Snatch")
-            end
-        end
-
-        local handcards = to:getHandcards()
-        if dismantlement_count >= handcards:length() then
-            return true
-        end
-
-        local can_use, cant_use = {}, {}
-        for _,c in sgs.qlist(handcards) do
-            if self.player:isCardLimited(c, sgs.Card_MethodUse, false) then
-                table.insert(cant_use, c)
-            else
-                table.insert(can_use, c)
-            end
-        end
-
-        if #can_use == 0 and dismantlement_count == 0 then
-            return false
-        end
-
-        if self:needToLoseHp() then
-            --Infact, needToLoseHp now doesn't mean self.player still needToLoseHp when this turn end.
-            --So this part may make us upset sometimes... Waiting for more details.
-            return true
-        end
-
-        local knowns, unknowns = {}, {}
-        local flag = string.format("visible_%s_%s", self.player:objectName(), to:objectName())
-        for _,c in sgs.qlist(handcards) do
-            if c:hasFlag("visible") or c:hasFlag(flag) then
-                table.insert(knowns, c)
-            else
-                table.insert(unknowns, c)
-            end
-        end
-
-        if #knowns > 0 then --Now I begin to lose control... Need more help.
-            local can_use_record = {}
-            for _,c in ipairs(can_use) do
-                can_use_record[c:getId()] = true
-            end
-
-            local can_use_count = 0
-            local to_can_use_count = 0
-            local function can_use_check(user, to_use)
-                if to_use:isKindOf("EquipCard") then
-                    return not user:isProhibited(user, to_use)
-                elseif to_use:isKindOf("BasicCard") then
-                    if to_use:isKindOf("Jink") then
-                        return false
-                    elseif to_use:isKindOf("Peach") then
-                        if user:hasFlag("Global_PreventPeach") then
-                            return false
-                        elseif user:getLostHp() == 0 then
-                            return false
-                        elseif user:isProhibited(user, to_use) then
-                            return false
-                        end
-                        return true
-                    elseif to_use:isKindOf("Slash") then
-                        if to_use:isAvailable(user) then
-                            local others = self.room:getOtherPlayers(user)
-                            for _,p in sgs.qlist(others) do
-                                if user:canSlash(p, to_use) then
-                                    return true
-                                end
-                            end
-                        end
-                        return false
-                    elseif to_use:isKindOf("Analeptic") then
-                        if to_use:isAvailable(user) then
-                            return not user:isProhibited(user, to_use)
-                        end
-                    end
-                elseif to_use:isKindOf("TrickCard") then
-                    if to_use:isKindOf("Nullification") then
-                        return false
-                    elseif to_use:isKindOf("DelayedTrick") then
-                        if user:containsTrick(to_use:objectName()) then
-                            return false
-                        elseif user:isProhibited(user, to_use) then
-                            return false
-                        end
-                        return true
-                    elseif to_use:isKindOf("Collateral") then
-                        local others = self.room:getOtherPlayers(user)
-                        local selected = sgs.PlayerList()
-                        for _,p in sgs.qlist(others) do
-                            if to_use:targetFilter(selected, p, user) then
-                                local victims = self.room:getOtherPlayers(p)
-                                for _,p2 in sgs.qlist(victims) do
-                                    if p:canSlash(p2) then
-                                        return true
-                                    end
-                                end
-                            end
-                        end
-                    elseif to_use:isKindOf("ExNihilo") then
-                        return not user:isProhibited(user, to_use)
-                    else
-                        local others = self.room:getOtherPlayers(user)
-                        for _,p in sgs.qlist(others) do
-                            if not user:isProhibited(p, to_use) then
-                                return true
-                            end
-                        end
-                        if to_use:isKindOf("GlobalEffect") and not user:isProhibited(user, to_use) then
-                            return true
-                        end
-                    end
-                end
-                return false
-            end
-            for _,c in ipairs(knowns) do
-                if can_use_record[c:getId()] and can_use_check(self.player, c) then
-                    can_use_count = can_use_count + 1
-                end
-            end
-
-            local to_friends = self:getFriends(to)
-            local to_has_weak_friend = false
-            local to_is_weak = self:isWeak(to)
-            for _,friend in ipairs(to_friends) do
-                if self:isEnemy(friend) and self:isWeak(friend) then
-                    to_has_weak_friend = true
-                    break
-                end
-            end
-
-            local my_trick, my_slash, my_aa, my_duel, my_sa = nil, nil, nil, nil, nil
-            local use = self.player:getTag("taoxi_carduse"):toCardUse()
-            local ucard = use.card
-            if ucard:isKindOf("TrickCard") then
-                my_trick = 1
-                if ucard:isKindOf("Duel") then
-                    my_duel = 1
-                elseif ucard:isKindOf("ArcheryAttack") then
-                    my_aa = 1
-                elseif ucard:isKindOf("SavageAssault") then
-                    my_sa = 1
-                end
-            elseif ucard:isKindOf("Slash") then
-                my_slash = 1
-            end
-            
-            for _,c in ipairs(knowns) do
-                if isCard("Nullification", c, to) then
-                    my_trick = my_trick or ( self:getCardsNum("TrickCard") - self:getCardsNum("DelayedTrick") )
-                    if my_trick > 0 then
-                        to_can_use_count = to_can_use_count + 1
-                        continue
-                    end
-                end
-                if isCard("Jink", c, to) then
-                    my_slash = my_slash or self:getCardsNum("Slash")
-                    if my_slash > 0 then
-                        to_can_use_count = to_can_use_count + 1
-                        continue
-                    end
-                    my_aa = my_aa or self:getCardsNum("ArcheryAttack")
-                    if my_aa > 0 then
-                        to_can_use_count = to_can_use_count + 1
-                        continue
-                    end
-                end
-                if isCard("Peach", c, to) then
-                    if to_has_weak_friend then
-                        to_can_use_count = to_can_use_count + 1
-                        continue
-                    end
-                end
-                if isCard("Analeptic", c, to) then
-                    if to:getHp() <= 1 and to_is_weak then
-                        to_can_use_count = to_can_use_count + 1
-                        continue
-                    end
-                end
-                if isCard("Slash", c, to) then
-                    my_duel = my_duel or self:getCardsNum("Duel")
-                    if my_duel > 0 then
-                        to_can_use_count = to_can_use_count + 1
-                        continue
-                    end
-                    my_sa = my_sa or self:getCardsNum("SavageAssault")
-                    if my_sa > 0 then
-                        to_can_use_count = to_can_use_count + 1
-                        continue
-                    end
-                end
-            end
-
-            if can_use_count >= to_can_use_count + #unknowns then
-                return true
-            elseif can_use_count > 0 and ( can_use_count + 0.01 ) / ( to_can_use_count + 0.01 ) >= 0.5 then
-                return true
-            end
-        end
-
-        if self:getCardsNum("Peach") > 0 then
-            return true
-        end
-    end
-    return false
+sgs.ai_skill_invoke.qingxi = function(self, data)
+	local target = data:toPlayer()
+	if not self:isEnemy(target) then return false end
+	if target:hasArmorEffect("silver_lion") then return false end
+	return true
 end
 
 -- huaiyi buhui!!!
@@ -567,7 +343,7 @@ end
 
 -- qinwang buhui!!!
 
--- zhenshan buhui!!!
+
 
 
 yanzhu_skill = {name = "yanzhu"}
@@ -1250,4 +1026,30 @@ sgs.ai_use_priority.AnguoCard = sgs.ai_use_priority.ExNihilo + 0.01
 
 sgs.ai_skill_cardchosen.anguo = function(self)
     return self.anguoid
+end
+
+sgs.ai_skill_invoke.yaoming = true
+
+sgs.ai_skill_use["@@yaoming"] = function(self, prompt)
+	local target
+	self:sort(self.friends_noself)
+	for _, friend in ipairs(self.friends_noself) do
+		if not self:needKongcheng(friend) and friend:getHandcardNum() < self.player:getHandcardNum() then
+			target = friend
+		end
+	end
+	if (target == nil) then
+		self:sort(self.enemies)
+		for _, enemy in ipairs(self.enemies) do
+			if not self:needKongcheng(enemy) and enemy:getHandcardNum() > self.player:getHandcardNum() then
+				target = enemy
+			end
+		end
+	end
+	
+	if target ~= nil then
+		return "@YaomingCard=.->" .. target:objectName()
+	end
+	
+	return "."
 end

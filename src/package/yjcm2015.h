@@ -34,20 +34,6 @@ public:
     const Card *validate(CardUseStruct &cardUse) const;
 };
 
-class ZhenshanCard : public SkillCard
-{
-    Q_OBJECT 
-
-public:
-    Q_INVOKABLE ZhenshanCard();
-    bool targetFixed() const;
-    bool targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const;
-    bool targetsFeasible(const QList<const Player *> &targets, const Player *Self) const;
-    const Card *validate(CardUseStruct &cardUse) const;
-    const Card *validateInResponse(ServerPlayer *user) const;
-    static void askForExchangeHand(ServerPlayer *quancong);
-};
-
 class YanzhuCard : public SkillCard
 {
     Q_OBJECT
@@ -129,6 +115,26 @@ class YJCM2015Package : public Package
 
 public:
     YJCM2015Package();
+};
+
+class MingjianCard : public SkillCard
+{
+    Q_OBJECT
+
+public:
+    Q_INVOKABLE MingjianCard();
+    bool targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const;
+    void use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targets) const;
+};
+
+class YaomingCard : public SkillCard
+{
+    Q_OBJECT
+
+public:
+    Q_INVOKABLE YaomingCard();
+    bool targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const;
+    void use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targets) const;
 };
 
 #endif

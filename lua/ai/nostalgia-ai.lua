@@ -2228,3 +2228,62 @@ sgs.ai_use_priority.QingnangCard = 4.2
 sgs.ai_card_intention.QingnangCard = -100
 
 sgs.dynamic_value.benefit.QingnangCard = true
+
+
+function sgs.ai_armor_value.yizhong(card)
+	if not card then return 4 end
+end
+
+local xinzhan_skill={}
+xinzhan_skill.name="xinzhan"
+table.insert(sgs.ai_skills,xinzhan_skill)
+xinzhan_skill.getTurnUseCard=function(self)
+	if not self.player:hasUsed("XinzhanCard") and self.player:getHandcardNum() > self.player:getMaxHp() then
+		return sgs.Card_Parse("@XinzhanCard=.")
+	end
+end
+
+sgs.ai_skill_use_func.XinzhanCard=function(card,use,self)
+	use.card = card
+end
+
+sgs.ai_use_value.XinzhanCard = 4.4
+sgs.ai_use_priority.XinzhanCard = 9.4
+
+function sgs.ai_slash_prohibit.huilei(self, from, to)
+	if from:hasSkill("jueqing") or (from:hasSkill("nosqianxi") and from:distanceTo(to) == 1) then return false end
+	if from:hasFlag("NosJiefanUsed") then return false end
+	if self:isFriend(to, from) and self:isWeak(to) then return true end
+	return #(self:getEnemies(from)) > 1 and self:isWeak(to) and from:getHandcardNum() > 3
+end
+
+sgs.ai_skill_invoke.nospojun = function(self, data)
+	local damage = data:toDamage()
+
+	if not damage.to:faceUp() then
+		return self:isFriend(damage.to)
+	end
+
+	local good = damage.to:getHp() > 2
+	if self:isFriend(damage.to) then
+		return good
+	elseif self:isEnemy(damage.to) then
+		return not good
+	end
+end
+
+sgs.ai_choicemade_filter.skillInvoke.nospojun = function(self, player, promptlist)
+	local intention = 60
+	local index = promptlist[#promptlist] == "yes" and 1 or -1
+	local damage = self.room:getTag("CurrentDamageStruct"):toDamage()
+	if damage.from and damage.to then
+		if not damage.to:faceUp() then
+			intention = index * intention
+		elseif damage.to:getHp() > 2 then
+			intention = -index / 2 * intention
+		elseif index == -1 then
+			intention = -20
+		end
+		sgs.updateIntention(damage.from, damage.to, intention)
+	end
+end
