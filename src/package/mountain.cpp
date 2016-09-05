@@ -1094,7 +1094,7 @@ public:
             room->setPlayerMark(liushan, "ruoyu", 1);
             if (room->changeMaxHpForAwakenSkill(liushan, 1)) {
                 room->recover(liushan, RecoverStruct(liushan));
-                if (liushan->getMark("ruoyu") == 1 && liushan->isLord())
+                if (liushan->getMark("ruoyu") == 1)
                     room->acquireSkill(liushan, "jijiang");
             }
         }

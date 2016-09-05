@@ -913,10 +913,19 @@ public:
 
                 if (!target->isLord())
                 {
-                    foreach(const Skill *sk, target->getVisibleSkillList()) {
-                        if (sk->isLordSkill() && !player->hasSkill(sk))
+                    foreach(const Skill *sk, target->getGeneral()->getVisibleSkillList()) {
+                        if (sk->isLordSkill() && !target->hasSkill(sk))
                         {
                             room->acquireSkill(target, sk->objectName());
+                        }
+                    }
+                    if (target->getGeneral2() != NULL)
+                    {
+                        foreach(const Skill *sk, target->getGeneral2()->getVisibleSkillList()) {
+                            if (sk->isLordSkill() && !target->hasSkill(sk))
+                            {
+                                room->acquireSkill(target, sk->objectName());
+                            }
                         }
                     }
                 }
