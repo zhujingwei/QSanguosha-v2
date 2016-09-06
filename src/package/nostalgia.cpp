@@ -1527,14 +1527,14 @@ class NosYingzi : public DrawCardsSkill
 public:
     NosYingzi() : DrawCardsSkill("nosyingzi")
     {
-        frequency = Frequent;
+        
     }
 
     int getDrawNum(ServerPlayer *zhouyu, int n) const
     {
         Room *room = zhouyu->getRoom();
         if (room->askForSkillInvoke(zhouyu, objectName())) {
-            room->broadcastSkillInvoke("nosyingzi");
+            zhouyu->broadcastSkillInvoke(objectName());
             return n + 1;
         } else
             return n;

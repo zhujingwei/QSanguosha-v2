@@ -427,6 +427,8 @@ public:
             return false;
 
         if (wolong->askForSkillInvoke("eight_diagram")) {
+            wolong->broadcastSkillInvoke(objectName());
+            room->setEmotion(wolong, "armor/eight_diagram");
             JudgeStruct judge;
             judge.pattern = ".|red";
             judge.good = true;
@@ -436,7 +438,6 @@ public:
             room->judge(judge);
 
             if (judge.isGood()) {
-                room->setEmotion(wolong, "armor/eight_diagram");
                 Jink *jink = new Jink(Card::NoSuit, 0);
                 jink->setSkillName("eight_diagram");
                 room->provide(jink);

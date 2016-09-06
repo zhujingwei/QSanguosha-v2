@@ -396,7 +396,6 @@ public:
     Jiang() : TriggerSkill("jiang")
     {
         events << TargetSpecified << TargetConfirmed;
-        frequency = Frequent;
     }
 
     bool trigger(TriggerEvent triggerEvent, Room *, ServerPlayer *sunce, QVariant &data) const

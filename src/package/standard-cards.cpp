@@ -743,6 +743,7 @@ public:
         QString asked = data.toStringList().first();
         if (asked == "jink") {
             if (room->askForSkillInvoke(player, "eight_diagram")) {
+                room->setEmotion(player, "armor/eight_diagram");
                 int armor_id = player->getArmor()->getId();
                 room->setCardFlag(armor_id, "using");
                 JudgeStruct judge;
@@ -755,7 +756,6 @@ public:
                 room->setCardFlag(armor_id, "-using");
 
                 if (judge.isGood()) {
-                    room->setEmotion(player, "armor/eight_diagram");
                     Jink *jink = new Jink(Card::NoSuit, 0);
                     jink->setSkillName(objectName());
                     room->provide(jink);
