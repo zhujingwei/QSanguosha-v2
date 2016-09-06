@@ -23,12 +23,14 @@ Skill::Skill(const QString &name, Frequency frequency)
         copy.remove(lord_symbol);
         setObjectName(copy);
         lord_skill = true;
-    } else if (name.endsWith(attached_lord_symbol)) {
+    }
+    else if (name.endsWith(attached_lord_symbol)) {
         QString copy = name;
         copy.remove(attached_lord_symbol);
         setObjectName(copy);
         attached_lord_skill = true;
-    } else {
+    }
+    else {
         setObjectName(name);
     }
 }
@@ -62,7 +64,7 @@ QString Skill::getDescription() const
 
     if (Config.value("AutoSkillTypeColorReplacement", true).toBool()) {
         QMap<QString, QColor> skilltype_color_map = Sanguosha->getSkillTypeColorMap();
-        foreach (QString skill_type, skilltype_color_map.keys()) {
+        foreach(QString skill_type, skilltype_color_map.keys()) {
             QString type_name = Sanguosha->translate(skill_type);
             QString color_name = skilltype_color_map[skill_type].name();
             des_src.replace(type_name, QString("<font color=%1><b>%2</b></font>").arg(color_name).arg(type_name));
@@ -105,30 +107,30 @@ int Skill::getEffectIndex(const ServerPlayer *, const Card *) const
 
 void Skill::initMediaSource()
 {
-        sources.clear();
-        foreach(const General *general, Sanguosha->getAllGenerals())
-        {
-            if (!general->hasSkill(objectName()) && !general->getRelatedSkillNames().contains(objectName()))
-                continue;
-            QString general_name = general->objectName();
-            QStringList tempSources;
-            for (int i = 1;; i++) {
-                QString effect_file = QString("audio/general/%1/%2%3.ogg").arg(general_name).arg(objectName()).arg(QString::number(i));
-                if (QFile::exists(effect_file))
-                    tempSources << effect_file;
-                else
-                    break;
-            }
-
-            if (tempSources.isEmpty()) {
-                QString effect_file = QString("audio/general/%1/%2.ogg").arg(general_name).arg(objectName());
-                if (QFile::exists(effect_file))
-                    tempSources << effect_file;
-            }
-            foreach(QString source, tempSources)
-                sources.insertMulti(general_name, source);
-            tempSources.clear();
+    sources.clear();
+    foreach(const General *general, Sanguosha->getAllGenerals())
+    {
+        if (!general->hasSkill(objectName()) && !general->getRelatedSkillNames().contains(objectName()))
+            continue;
+        QString general_name = general->objectName();
+        QStringList tempSources;
+        for (int i = 1;; i++) {
+            QString effect_file = QString("audio/general/%1/%2%3.ogg").arg(general_name).arg(objectName()).arg(QString::number(i));
+            if (QFile::exists(effect_file))
+                tempSources << effect_file;
+            else
+                break;
         }
+
+        if (tempSources.isEmpty()) {
+            QString effect_file = QString("audio/general/%1/%2.ogg").arg(general_name).arg(objectName());
+            if (QFile::exists(effect_file))
+                tempSources << effect_file;
+        }
+        foreach(QString source, tempSources)
+            sources.insertMulti(general_name, source);
+        tempSources.clear();
+    }
 }
 
 void Skill::playAudioEffect(const QString &general_name, int index, bool superpose) const
@@ -148,7 +150,8 @@ void Skill::playAudioEffect(const QString &general_name, int index, bool superpo
             while (index >= source_list.length())
                 index -= source_list.length();
             filename = source_list.at(index);
-        } else
+        }
+        else
             filename = source_list.first();
 
         Sanguosha->playAudioEffect(filename, superpose);
@@ -185,8 +188,8 @@ bool ViewAsSkill::isAvailable(const Player *invoker,
     const QString &pattern) const
 {
     if (!invoker->hasSkill(this) && !invoker->hasLordSkill(this)
-            && invoker->getMark("ViewAsSkill_" + objectName() + "Effect") == 0   // For skills like Shuangxiong(ViewAsSkill effect remains even if the player has lost the skill)
-            && !invoker->hasFlag("RoomScene_" + objectName() + "TempUse")) // for RoomScene Temp Use
+        && invoker->getMark("ViewAsSkill_" + objectName() + "Effect") == 0   // For skills like Shuangxiong(ViewAsSkill effect remains even if the player has lost the skill)
+        && !invoker->hasFlag("RoomScene_" + objectName() + "TempUse")) // for RoomScene Temp Use
         return false;
     switch (reason) {
     case CardUseStruct::CARD_USE_REASON_PLAY: return isEnabledAtPlay(invoker);
@@ -265,10 +268,11 @@ bool OneCardViewAsSkill::viewFilter(const Card *to_select) const
         if (pat.endsWith("!")) {
             if (Self->isJilei(to_select)) return false;
             pat.chop(1);
-        } else if (response_or_use && pat.contains("hand")) {
+        }
+        else if (response_or_use && pat.contains("hand")) {
             QStringList handlist;
             handlist.append("hand");
-            foreach (const QString &pile, Self->getPileNames()) {
+            foreach(const QString &pile, Self->getPileNames()) {
                 if (pile.startsWith("&") || pile == "wooden_ox")
                     handlist.append(pile);
             }
@@ -425,7 +429,7 @@ bool SPConvertSkill::triggerable(const ServerPlayer *target) const
     if (Config.EnableHegemony) return false;
     if (!isNormalGameMode(Config.GameMode)) return false;
     bool available = false;
-    foreach (QString to_gen, to_list) {
+    foreach(QString to_gen, to_list) {
         const General *gen = Sanguosha->getGeneral(to_gen);
         if (gen && !Config.value("Banlist/Roles", "").toStringList().contains(to_gen)
             && !Sanguosha->getBanPackages().contains(gen->getPackage())) {
@@ -441,7 +445,7 @@ void SPConvertSkill::onGameStart(ServerPlayer *player) const
 {
     Room *room = player->getRoom();
     QStringList choicelist;
-    foreach (QString to_gen, to_list) {
+    foreach(QString to_gen, to_list) {
         const General *gen = Sanguosha->getGeneral(to_gen);
         if (gen && !Config.value("Banlist/Roles", "").toStringList().contains(to_gen)
             && !Sanguosha->getBanPackages().contains(gen->getPackage()))

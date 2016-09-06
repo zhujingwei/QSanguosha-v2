@@ -491,14 +491,6 @@ public:
 
         return false;
     }
-
-    int getEffectIndex(const ServerPlayer *player, const Card *) const
-    {
-        if (player->hasFlag("NosJiefanToLord"))
-            return 2;
-        else
-            return 1;
-    }
 };
 
 class NosQianxi : public TriggerSkill
@@ -2595,10 +2587,12 @@ NostalYJCMPackage::NostalYJCMPackage()
 NostalYJCM2012Package::NostalYJCM2012Package()
     : Package("nostal_yjcm2012")
 {
-    General *nos_guanxingzhangbao = new General(this, "nos_guanxingzhangbao", "shu");
+    General *nos_guanxingzhangbao = new General(this, "nos_guanxingzhangbao", "shu", 4, true, true, true);
     nos_guanxingzhangbao->addSkill(new NosFuhun);
+    nos_guanxingzhangbao->addRelateSkill("wusheng");
+    nos_guanxingzhangbao->addRelateSkill("paoxiao");
 
-    General *nos_handang = new General(this, "nos_handang", "wu");
+    General *nos_handang = new General(this, "nos_handang", "wu", 4, true, true, true);
     nos_handang->addSkill(new NosGongqi);
     nos_handang->addSkill(new NosGongqiTargetMod);
     nos_handang->addSkill(new NosJiefan);
@@ -2608,7 +2602,7 @@ NostalYJCM2012Package::NostalYJCM2012Package()
     nos_madai->addSkill("mashu");
     nos_madai->addSkill(new NosQianxi);
 
-    General *nos_wangyi = new General(this, "nos_wangyi", "wei", 3, false);
+    General *nos_wangyi = new General(this, "nos_wangyi", "wei", 3, false, true, true);
     nos_wangyi->addSkill(new NosZhenlie);
     nos_wangyi->addSkill(new NosMiji);
 

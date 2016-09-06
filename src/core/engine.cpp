@@ -342,6 +342,7 @@ Engine::Engine(bool isManualMode)
         Skill *mutable_skill = const_cast<Skill *>(skill);
         mutable_skill->initMediaSource();
     }
+    //exportSkillList();
 }
 
 lua_State *Engine::getLuaState() const
@@ -738,6 +739,29 @@ bool Engine::isGeneralHidden(const QString &general_name) const
     if (!general) return true;
     return (general->isHidden() && !removed_hidden_generals.contains(general_name))
         || extra_hidden_generals.contains(general_name);
+}
+
+void Engine::exportSkillList() const
+{
+    QFile file("general-skill.txt");
+    if (file.open(QIODevice::WriteOnly)) {
+        QTextStream out(&file);
+        foreach(const General *general, getAllGenerals())
+        {
+            QStringList skills;
+            foreach(const Skill *skill, general->getSkillList())
+            {
+                if (!skills.contains(skill->objectName()))
+                    skills << skill->objectName();
+            }
+            foreach(const QString skill_name, general->getRelatedSkillNames())
+            {
+                if (!skills.contains(skill_name))
+                    skills << skill_name;
+            }
+            out << general->objectName() << ":" << skills.join(",") << endl;
+        }
+    }
 }
 
 WrappedCard *Engine::getWrappedCard(int cardId)

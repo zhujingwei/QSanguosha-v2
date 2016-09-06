@@ -493,12 +493,16 @@ void Player::acquireSkill(const QString &skill_name, const QString &reason)
     if (acquired_skills.contains(skill_name))
         return;
     acquired_skills.append(skill_name);
-    if (hasSkill(reason))
-    {
-        if (skills_gets.key(skill_name, NULL) != NULL)
-            skills_gets.values(reason).removeOne(skill_name);
+    //移除重复记录
+    QString parent_key = skills_gets.key(skill_name, NULL);
+    if (parent_key != NULL)
+        skills_gets.values(parent_key).removeOne(skill_name);
+    //添加记录(所有记录都基于第一层key)
+    QString grand_pa_key = skills_gets.key(reason, NULL);
+    if (grand_pa_key != NULL)
+        skills_gets.insertMulti(grand_pa_key, skill_name);
+    else
         skills_gets.insertMulti(reason, skill_name);
-    }
 }
 
 void Player::detachSkill(const QString &skill_name)
@@ -509,6 +513,7 @@ void Player::detachSkill(const QString &skill_name)
 void Player::detachAllSkills()
 {
     acquired_skills.clear();
+    skills_gets.clear();
 }
 
 void Player::addSkill(const QString &skill_name)
@@ -1341,6 +1346,10 @@ void Player::loseAttachLordSkill( const QString &skill_name )
 
 const QString Player::getSkillSource(QString &skill_name) const
 {
+    const Skill *skill = Sanguosha->getSkill(skill_name);
+    if (skill == NULL)
+        return isMale();
+
     const General *general1 = getGeneral();
     const General *general2 = getGeneral2();
     QString general_name;

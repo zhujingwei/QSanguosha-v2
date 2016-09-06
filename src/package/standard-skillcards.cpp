@@ -12,15 +12,10 @@
 ZhihengCard::ZhihengCard()
 {
     target_fixed = true;
-    mute = true;
 }
 
 void ZhihengCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &) const
 {
-    if (source->hasInnateSkill("zhiheng") || !source->hasSkill("jilve"))
-        room->broadcastSkillInvoke("zhiheng");
-    else
-        room->broadcastSkillInvoke("jilve", 4);
     if (source->isAlive())
         room->drawCards(source, subcards.length(), "zhiheng");
 }
@@ -36,7 +31,7 @@ void RendeCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &tar
 {
 
     if (!source->tag.value("rende_using", false).toBool())
-        room->broadcastSkillInvoke("rende");
+        source->broadcastSkillInvoke("rende");
 
     ServerPlayer *target = targets.first();
 
@@ -238,7 +233,7 @@ void LijianCard::onUse(Room *room, const CardUseStruct &card_use) const
     thread->trigger(PreCardUsed, room, card_use.from, data);
     use = data.value<CardUseStruct>();
 
-    room->broadcastSkillInvoke("lijian");
+    card_use.from->broadcastSkillInvoke("lijian");
 
     LogMessage log;
     log.from = card_use.from;
@@ -462,18 +457,7 @@ const Card *JijiangCard::validate(CardUseStruct &cardUse) const
     QList<ServerPlayer *> targets = cardUse.to;
     Room *room = liubei->getRoom();
 
-    if (!liubei->isLord() && liubei->hasSkill("weidi"))
-        room->broadcastSkillInvoke("weidi");
-    else {
-        int r = 1 + qrand() % 2;
-        if (!liubei->hasInnateSkill("jijiang") && liubei->getMark("ruoyu") > 0)
-            r += 2;
-        else if (liubei->hasSkill("qinwang"))
-            r += 4;
-
-        room->broadcastSkillInvoke("jijiang", r);
-    }
-
+    liubei->broadcastSkillInvoke("jijiang");
     room->notifySkillInvoked(liubei, "jijiang");
 
     LogMessage log;

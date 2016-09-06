@@ -367,7 +367,7 @@ bool Jushou::onPhaseChange(ServerPlayer *target) const
     if (target->getPhase() == Player::Finish) {
         Room *room = target->getRoom();
         if (room->askForSkillInvoke(target, objectName())) {
-            room->broadcastSkillInvoke(objectName());
+            target->broadcastSkillInvoke(objectName());
             target->drawCards(getJushouDrawNum(target), objectName());
             target->turnOver();
         }
@@ -387,7 +387,7 @@ public:
     bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &) const
     {
         if (!room->askForSkillInvoke(player, objectName())) return false;
-        room->broadcastSkillInvoke(objectName());
+        player->broadcastSkillInvoke(objectName());
         player->drawCards(1, objectName());
 
         const Card *card = room->askForUseCard(player, "TrickCard+^Nullification,EquipCard|.|.|hand", "@jiewei");
@@ -465,7 +465,7 @@ public:
             int handcardnum = p->getHandcardNum();
             if ((player->getHp() <= handcardnum || player->getAttackRange() >= handcardnum)
                 && player->askForSkillInvoke(this, QVariant::fromValue(p))) {
-                room->broadcastSkillInvoke(objectName());
+                player->broadcastSkillInvoke(objectName());
 
                 LogMessage log;
                 log.type = "#NoJink";
@@ -495,7 +495,7 @@ public:
         bool invoke = player->tag.value("InvokeKuanggu", false).toBool();
         player->tag["InvokeKuanggu"] = false;
         if (invoke && player->isWounded()) {
-            room->broadcastSkillInvoke(objectName());
+            player->broadcastSkillInvoke(objectName());
             room->sendCompulsoryTriggerLog(player, objectName());
 
             room->recover(player, RecoverStruct(player, NULL, damage.damage));
@@ -541,7 +541,7 @@ public:
             return false;
 
         if (zhoutai->getHp() > 0) return false;
-        room->broadcastSkillInvoke(objectName());
+        zhoutai->broadcastSkillInvoke(objectName());
         room->sendCompulsoryTriggerLog(zhoutai, objectName());
 
         int id = room->drawCard();
@@ -602,7 +602,7 @@ public:
             bool invoke = room->askForSkillInvoke(player, objectName(), data);
             move.from->setFlags("-FenjiMoveFrom");
             if (invoke) {
-                room->broadcastSkillInvoke(objectName());
+                player->broadcastSkillInvoke(objectName());
                 room->loseHp(player);
                 if (move.from->isAlive())
                     room->drawCards((ServerPlayer *)move.from, 2, "fenji");
@@ -690,15 +690,6 @@ public:
             return room->askForUseCard(xiaoqiao, "@@tianxiang", "@tianxiang-card", -1, Card::MethodDiscard);
         }
         return false;
-    }
-
-    int getEffectIndex(const ServerPlayer *player, const Card *) const
-    {
-        int index = qrand() % 2 + 1;
-        if (!player->hasInnateSkill(this) && player->hasSkill("luoyan"))
-            index += 2;
-
-        return index;
     }
 };
 
@@ -944,7 +935,7 @@ bool GuhuoCard::guhuo(ServerPlayer *yuji) const
             room->sendLog(log);
 
             room->notifySkillInvoked(player, "chanyuan");
-            room->broadcastSkillInvoke("chanyuan");
+            yuji->broadcastSkillInvoke("chanyuan");
             room->setEmotion(player, "no-question");
             continue;
         }
@@ -1092,7 +1083,7 @@ const Card *GuhuoCard::validate(CardUseStruct &card_use) const
         to_guhuo = room->askForChoice(yuji, "guhuo_slash", guhuo_list.join("+"));
         yuji->tag["GuhuoSlash"] = QVariant(to_guhuo);
     }
-    room->broadcastSkillInvoke("guhuo");
+    yuji->broadcastSkillInvoke("guhuo");
 
     LogMessage log;
     log.type = card_use.to.isEmpty() ? "#GuhuoNoTarget" : "#Guhuo";
@@ -1132,7 +1123,7 @@ const Card *GuhuoCard::validate(CardUseStruct &card_use) const
                     log.arg2 = use_card->objectName();
                     room->sendLog(log);
 
-                    room->broadcastSkillInvoke(skill->objectName());
+                    to->broadcastSkillInvoke(skill->objectName());
                 }
                 card_use.to.removeOne(to);
             }
@@ -1145,7 +1136,7 @@ const Card *GuhuoCard::validate(CardUseStruct &card_use) const
 const Card *GuhuoCard::validateInResponse(ServerPlayer *yuji) const
 {
     Room *room = yuji->getRoom();
-    room->broadcastSkillInvoke("guhuo");
+    yuji->broadcastSkillInvoke("guhuo");
 
     QString to_guhuo;
     if (user_string == "peach+analeptic") {

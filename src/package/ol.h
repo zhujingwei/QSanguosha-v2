@@ -114,15 +114,6 @@ public:
     bool targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const;
 };
 
-class OlQingjianCard : public SkillCard
-{
-    Q_OBJECT
-
-public:
-    Q_INVOKABLE OlQingjianCard();
-    void onUse(Room *room, const CardUseStruct &card_use) const;
-};
-
 class OlAnxuCard : public SkillCard
 {
     Q_OBJECT

@@ -122,6 +122,7 @@ public:
 
     QString findConvertFrom(const QString &general_name) const;
     bool isGeneralHidden(const QString &general_name) const;
+    void exportSkillList() const;
 
 private:
     void _loadMiniScenarios();

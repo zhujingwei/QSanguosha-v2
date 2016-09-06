@@ -294,10 +294,21 @@ sgs.ai_choicemade_filter.skillInvoke.ganglie = function(self, player, promptlist
 	end
 end
 
-sgs.ai_skill_askforyiji.qingjian = function(self, card_ids)
-	local move_skill = self.player:getTag("QingjianCurrentMoveSkill"):toString()
-	if move_skill == "rende" or move_skill == "nosrende" then return nil, -1 end
-	return sgs.ai_skill_askforyiji.nosyiji(self, card_ids)
+sgs.ai_skill_discard.qingjian = function(self, discard_num, optional, include_equip)
+    local card_ids = self.player:getTag("qingjian")
+    local cards, to_give = {}, {}
+    for _,id in sgs.qlist(card_ids) do
+        table.insert(cards, sgs.Sanguosha:getCard(id))
+    end
+    
+    for i = 1, #cards, 1 do
+        local card, friend = self:getCardNeedPlayer(cards, true)
+        if friend:objectName() ~= self.player:objectName() then
+            table.insert(to_give, card)
+        end
+    end
+
+    return to_give
 end
 
 sgs.ai_skill_use["@@tuxi"] = function(self, prompt)

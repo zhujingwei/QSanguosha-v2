@@ -2612,7 +2612,7 @@ public:
         return NULL;
     }
 
-    int getEffectIndex(const ServerPlayer *player, const Card *) const
+    int getEffectIndex(const ServerPlayer *, const Card *) const
     {
         return 1;
     }

@@ -12,7 +12,7 @@
 
 QuhuCard::QuhuCard()
 {
-    mute = true;
+
 }
 
 bool QuhuCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
@@ -24,11 +24,8 @@ void QuhuCard::use(Room *room, ServerPlayer *xunyu, QList<ServerPlayer *> &targe
 {
     ServerPlayer *tiger = targets.first();
 
-    room->broadcastSkillInvoke("quhu", 1);
-
     bool success = xunyu->pindian(tiger, "quhu", NULL);
     if (success) {
-        room->broadcastSkillInvoke("quhu", 2);
 
         QList<ServerPlayer *> players = room->getOtherPlayers(tiger), wolves;
         foreach (ServerPlayer *player, players) {
@@ -71,7 +68,7 @@ public:
             int x = upper - to->getHandcardNum();
             if (x <= 0) continue;
 
-            room->broadcastSkillInvoke(objectName());
+            xunyu->broadcastSkillInvoke(objectName());
             to->drawCards(x, objectName());
             if (!xunyu->isAlive())
                 break;
@@ -268,7 +265,7 @@ public:
                 if (shuangxiong->askForSkillInvoke(this)) {
                     room->setPlayerFlag(shuangxiong, "shuangxiong");
 
-                    room->broadcastSkillInvoke("shuangxiong", 1);
+                    shuangxiong->broadcastSkillInvoke(objectName());
                     JudgeStruct judge;
                     judge.good = true;
                     judge.play_animation = false;
@@ -313,7 +310,7 @@ public:
         SlashEffectStruct effect = data.value<SlashEffectStruct>();
         if (effect.to->isAlive() && pangde->canDiscard(effect.to, "he")) {
             if (pangde->askForSkillInvoke(this, data)) {
-                room->broadcastSkillInvoke(objectName());
+                pangde->broadcastSkillInvoke(objectName());
                 int to_throw = room->askForCardChosen(pangde, effect.to, "he", objectName(), false, Card::MethodDiscard);
                 room->throwCard(Sanguosha->getCard(to_throw), effect.to, pangde);
             }
@@ -363,7 +360,7 @@ public:
             return false;
 
         if (pangtong->askForSkillInvoke(this, data)) {
-            room->broadcastSkillInvoke(objectName());
+            pangtong->broadcastSkillInvoke(objectName());
             //room->doLightbox("$NiepanAnimate");
             room->doSuperLightbox("pangtong", "niepan");
 

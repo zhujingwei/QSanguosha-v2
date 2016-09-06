@@ -25,8 +25,7 @@ public:
         if (player->isNude() || caopi == player)
             return false;
         if (caopi->isAlive() && room->askForSkillInvoke(caopi, objectName(), data)) {
-            bool isCaoCao = player->getGeneralName().contains("caocao");
-            room->broadcastSkillInvoke(objectName(), (isCaoCao ? 3 : (player->isMale() ? 1 : 2)));
+            caopi->broadcastSkillInvoke(objectName());
 
             DummyCard *dummy = new DummyCard(player->handCards());
             QList <const Card *> equips = player->getEquips();
@@ -57,14 +56,7 @@ public:
         ServerPlayer *to = room->askForPlayerChosen(caopi, room->getOtherPlayers(caopi), objectName(),
             "fangzhu-invoke", caopi->getMark("JilveEvent") != int(Damaged), true);
         if (to) {
-            if (caopi->hasInnateSkill("fangzhu") || !caopi->hasSkill("jilve")) {
-                int index = to->faceUp() ? 1 : 2;
-                if (to->getGeneralName().contains("caozhi") || (to->getGeneral2() && to->getGeneral2Name().contains("caozhi")))
-                    index = 3;
-                room->broadcastSkillInvoke("fangzhu", index);
-            } else
-                room->broadcastSkillInvoke("jilve", 2);
-
+            caopi->broadcastSkillInvoke(objectName());
             to->drawCards(caopi->getLostHp(), objectName());
             to->turnOver();
         }
@@ -99,10 +91,7 @@ public:
             while (!caopis.isEmpty()) {
                 ServerPlayer *caopi = room->askForPlayerChosen(player, caopis, objectName(), "@songwei-to", true);
                 if (caopi) {
-                    if (!caopi->isLord() && caopi->hasSkill("weidi"))
-                        room->broadcastSkillInvoke("weidi");
-                    else
-                        room->broadcastSkillInvoke(objectName(), player->isMale() ? 1 : 2);
+                    caopi->broadcastSkillInvoke(objectName());
 
                     room->notifySkillInvoked(caopi, objectName());
                     LogMessage log;
@@ -173,7 +162,7 @@ public:
     {
         CardEffectStruct effect = data.value<CardEffectStruct>();
         if (effect.card->isKindOf("SavageAssault")) {
-            room->broadcastSkillInvoke(avoid_skill);
+            player->broadcastSkillInvoke(avoid_skill);
 
             LogMessage log;
             log.type = "#SkillNullify";
@@ -212,7 +201,7 @@ public:
             if (use.card->isKindOf("SavageAssault")) {
                 ServerPlayer *menghuo = room->findPlayerBySkillName(objectName());
                 if (menghuo && menghuo != use.from) {
-                    room->broadcastSkillInvoke(objectName());
+                    menghuo->broadcastSkillInvoke(objectName());
                     room->sendCompulsoryTriggerLog(player, objectName());
 
                     use.card->setFlags("HuoshouDamage_" + menghuo->objectName());
@@ -254,7 +243,7 @@ public:
         if (damage.card && damage.card->isKindOf("Slash") && !zhurong->isKongcheng()
             && !target->isKongcheng() && !target->hasFlag("Global_DebutFlag") && !damage.chain && !damage.transfer
             && room->askForSkillInvoke(zhurong, objectName(), data)) {
-            room->broadcastSkillInvoke(objectName());
+            zhurong->broadcastSkillInvoke(objectName());
 
             bool success = zhurong->pindian(target, "lieren", NULL);
             if (!success) return false;
@@ -282,7 +271,7 @@ public:
         if (menghuo->getPhase() == Player::Draw && menghuo->isWounded()) {
             Room *room = menghuo->getRoom();
             if (room->askForSkillInvoke(menghuo, objectName())) {
-                room->broadcastSkillInvoke(objectName(), 1);
+                menghuo->broadcastSkillInvoke(objectName());
 
                 bool has_heart = false;
                 int x = menghuo->getLostHp();
@@ -317,11 +306,6 @@ public:
                     delete dummy2;
                 }
 
-                if (has_heart)
-                    room->broadcastSkillInvoke(objectName(), 2);
-                else
-                    room->broadcastSkillInvoke(objectName(), 3);
-
                 return true;
             }
         }
@@ -352,7 +336,7 @@ public:
                     return false;
             }
             if (player != move.from) {
-                room->broadcastSkillInvoke(objectName());
+                player->broadcastSkillInvoke(objectName());
                 room->sendCompulsoryTriggerLog(player, objectName());
 
                 player->obtainCard(card);
@@ -383,15 +367,10 @@ public:
         Room *room = sunjian->getRoom();
         ServerPlayer *to = room->askForPlayerChosen(sunjian, room->getOtherPlayers(sunjian), objectName(), "yinghun-invoke", true, true);
         if (to) {
+            sunjian->broadcastSkillInvoke(objectName());
             int x = sunjian->getLostHp();
 
-            int index = 1;
-            if (!sunjian->hasInnateSkill("yinghun") && sunjian->hasSkill("hunzi"))
-                index += 2;
-
             if (x == 1) {
-                room->broadcastSkillInvoke(objectName(), index);
-
                 to->drawCards(1, objectName());
                 room->askForDiscard(to, objectName(), 1, 1, false, true);
             } else {
@@ -399,13 +378,9 @@ public:
                 QString choice = room->askForChoice(sunjian, objectName(), "d1tx+dxt1");
                 to->setFlags("-YinghunTarget");
                 if (choice == "d1tx") {
-                    room->broadcastSkillInvoke(objectName(), index + 1);
-
                     to->drawCards(1, objectName());
                     room->askForDiscard(to, objectName(), x, x, false, true);
                 } else {
-                    room->broadcastSkillInvoke(objectName(), index);
-
                     to->drawCards(x, objectName());
                     room->askForDiscard(to, objectName(), 1, 1, false, true);
                 }
@@ -525,7 +500,7 @@ public:
     {
         Room *room = lusu->getRoom();
         if (room->askForSkillInvoke(lusu, "haoshi")) {
-            room->broadcastSkillInvoke("haoshi");
+            lusu->broadcastSkillInvoke("haoshi");
             lusu->setFlags("haoshi");
             return n + 2;
         } else
@@ -659,10 +634,7 @@ public:
             ServerPlayer *jiaxu = room->getCurrent();
             if (!jiaxu || !TriggerSkill::triggerable(jiaxu) || jiaxu->getPhase() == Player::NotActive)
                 return false;
-            if (jiaxu->hasInnateSkill("wansha") || !jiaxu->hasSkill("jilve"))
-                room->broadcastSkillInvoke(objectName());
-            else
-                room->broadcastSkillInvoke("jilve", 3);
+            jiaxu->broadcastSkillInvoke(objectName());
 
             room->notifySkillInvoked(jiaxu, objectName());
 
@@ -703,18 +675,13 @@ public:
 
 LuanwuCard::LuanwuCard()
 {
-    mute = true;
     target_fixed = true;
 }
 
 void LuanwuCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &) const
 {
     room->removePlayerMark(source, "@chaos");
-    room->broadcastSkillInvoke("luanwu");
-    QString name = "jiaxu";
-    if (source->getGeneralName() != "jiaxu" && (source->getGeneralName() == "sp_jiaxu" || source->getGeneral2Name() == "sp_jiaxu"))
-        name = "sp_jiaxu";
-    room->doSuperLightbox(name, "luanwu");
+    room->doSuperLightbox("jiaxu", "luanwu");
 
     QList<ServerPlayer *> players = room->getOtherPlayers(source);
     foreach (ServerPlayer *player, players) {
@@ -816,7 +783,7 @@ public:
                 }
                 use.from->tag["Jink_" + use.card->toString()] = QVariant::fromValue(jink_list);
                 if (play_effect) {
-                    room->broadcastSkillInvoke(objectName(), 1);
+                    use.from->broadcastSkillInvoke(objectName());
                     room->sendCompulsoryTriggerLog(use.from, objectName());
                 }
             } else if (triggerEvent == TargetConfirmed && use.from->isFemale()) {
@@ -832,9 +799,7 @@ public:
                 use.from->tag["Jink_" + use.card->toString()] = QVariant::fromValue(jink_list);
 
                 if (play_effect) {
-                    bool drunk = (use.card->tag.value("drunk", 0).toInt() > 0);
-                    int index = drunk ? 3 : 2;
-                    room->broadcastSkillInvoke(objectName(), index);
+                    player->broadcastSkillInvoke(objectName());
                     room->sendCompulsoryTriggerLog(player, objectName());
                 }
             }
@@ -871,15 +836,8 @@ public:
             room->sendCompulsoryTriggerLog(dongzhuo, objectName());
 
             QString result = room->askForChoice(dongzhuo, "benghuai", "hp+maxhp");
-            int index = (dongzhuo->isFemale()) ? 2 : 1;
 
-            if (!dongzhuo->hasInnateSkill(this) && dongzhuo->getMark("juyi") > 0)
-                index = 3;
-
-            if (!dongzhuo->hasInnateSkill(this) && dongzhuo->getMark("baoling") > 0)
-                index = result == "hp" ? 4 : 5;
-
-            room->broadcastSkillInvoke(objectName(), index);
+            dongzhuo->broadcastSkillInvoke(objectName());
             if (result == "hp")
                 room->loseHp(dongzhuo);
             else
@@ -923,6 +881,7 @@ public:
                     log.arg = objectName();
                     room->sendLog(log);
                     room->notifySkillInvoked(dongzhuo, objectName());
+                    dongzhuo->broadcastSkillInvoke(objectName());
 
                     JudgeStruct judge;
                     judge.pattern = ".|spade";
@@ -933,11 +892,6 @@ public:
                     room->judge(judge);
 
                     if (judge.isGood()) {
-                        if (!dongzhuo->isLord() && dongzhuo->hasSkill("weidi"))
-                            room->broadcastSkillInvoke("weidi");
-                        else
-                            room->broadcastSkillInvoke(objectName());
-
                         room->recover(dongzhuo, RecoverStruct(player));
                     }
                 } else

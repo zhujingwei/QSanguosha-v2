@@ -189,4 +189,13 @@ private:
     static bool hasShuGenerals(const Player *player);
 };
 
+class QingjianCard : public SkillCard
+{
+    Q_OBJECT
+
+public:
+    Q_INVOKABLE QingjianCard();
+    void onUse(Room *room, const CardUseStruct &card_use) const;
+};
+
 #endif
