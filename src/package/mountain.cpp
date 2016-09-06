@@ -646,18 +646,6 @@ public:
     {
         return new TiaoxinCard;
     }
-
-    int getEffectIndex(const ServerPlayer *player, const Card *) const
-    {
-        int index = qrand() % 2 + 1;
-        if (!player->hasInnateSkill(this) && player->hasSkill("baobian"))
-            index += 3;
-        else if (!player->hasInnateSkill(this) && player->getMark("fengliang") > 0)
-            index += 5;
-        else if (player->hasArmorEffect("eight_diagram"))
-            index = 3;
-        return index;
-    }
 };
 
 class Zhiji : public PhaseChangeSkill
@@ -1110,11 +1098,6 @@ public:
     {
     }
 
-    static void playAudioEffect(ServerPlayer *zuoci, const QString &skill_name)
-    {
-        zuoci->getRoom()->broadcastSkillInvoke(skill_name, zuoci->isMale(), -1);
-    }
-
     static void AcquireGenerals(ServerPlayer *zuoci, int n)
     {
         Room *room = zuoci->getRoom();
@@ -1211,7 +1194,7 @@ public:
     static void SelectSkill(ServerPlayer *zuoci)
     {
         Room *room = zuoci->getRoom();
-        playAudioEffect(zuoci, "huashen");
+        zuoci->broadcastSkillInvoke("huashen");
         QStringList ac_dt_list;
 
         QString huashen_skill = zuoci->tag["HuashenSkill"].toString();
@@ -1374,13 +1357,12 @@ class Xinsheng : public MasochismSkill
 public:
     Xinsheng() : MasochismSkill("xinsheng")
     {
-        frequency = Frequent;
     }
 
     void onDamaged(ServerPlayer *zuoci, const DamageStruct &damage) const
     {
         if (zuoci->askForSkillInvoke(this)) {
-            Huashen::playAudioEffect(zuoci, objectName());
+            zuoci->broadcastSkillInvoke(objectName());
             Huashen::AcquireGenerals(zuoci, damage.damage);
         }
     }

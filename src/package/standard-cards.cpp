@@ -208,18 +208,9 @@ void Slash::onUse(Room *room, const CardUseStruct &card_use) const
         QString name;
         if (player->hasSkill("paoxiao"))
             name = "paoxiao";
-        else if (player->hasSkill("huxiao") && player->getMark("huxiao") > 0)
-            name = "huxiao";
         if (!name.isEmpty()) {
             player->setFlags("-Global_MoreSlashInOneTurn");
-            int index = qrand() % 2 + 1;
-            if (name == "paoxiao") {
-                if (!player->hasInnateSkill("paoxiao") && player->hasSkill("baobian"))
-                    index += 4;
-                else if (Player::isNostalGeneral(player, "zhangfei"))
-                    index += 2;
-            }
-            room->broadcastSkillInvoke(name, index);
+            player->broadcastSkillInvoke(name);
             room->notifySkillInvoked(player, name);
         }
     }

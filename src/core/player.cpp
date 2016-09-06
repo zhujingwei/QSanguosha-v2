@@ -490,6 +490,8 @@ bool Player::hasLordSkill(const Skill *skill, bool include_lose /* = false */) c
 
 void Player::acquireSkill(const QString &skill_name, const QString &reason)
 {
+    if (acquired_skills.contains(skill_name))
+        return;
     acquired_skills.append(skill_name);
     if (hasSkill(reason))
     {

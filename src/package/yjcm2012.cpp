@@ -588,11 +588,6 @@ public:
 
         return slash;
     }
-
-    int getEffectIndex(const ServerPlayer *player, const Card *) const
-    {
-        return 1;
-    }
 };
 
 class Fuhun : public TriggerSkill
@@ -616,7 +611,6 @@ public:
             if (damage.card && damage.card->isKindOf("Slash") && damage.card->getSkillName() == objectName()
                 && player->getPhase() == Player::Play) {
                 room->handleAcquireDetachSkills(player, "wusheng|paoxiao", objectName());
-                room->broadcastSkillInvoke(objectName(), 2);
                 player->setFlags(objectName());
             }
         } else if (triggerEvent == EventPhaseChanging) {
@@ -1224,6 +1218,8 @@ YJCM2012Package::YJCM2012Package()
 
     General *guanxingzhangbao = new General(this, "guanxingzhangbao", "shu"); // YJ 104
     guanxingzhangbao->addSkill(new Fuhun);
+    guanxingzhangbao->addRelateSkill("wusheng");
+    guanxingzhangbao->addRelateSkill("paoxiao");
 
     General *handang = new General(this, "handang", "wu"); // YJ 105
     handang->addSkill(new Gongqi);

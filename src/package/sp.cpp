@@ -773,8 +773,6 @@ private:
         if (player->getHp() <= hp) {
             if (!baobian_skills.contains(skill_name)) {
                 room->notifySkillInvoked(player, "baobian");
-                if (player->getHp() == hp)
-                    room->broadcastSkillInvoke("baobian", 4 - hp);
                 acquired_skills.append(skill_name);
                 baobian_skills << skill_name;
             }
@@ -2979,6 +2977,9 @@ SPPackage::SPPackage()
 
     General *xiahouba = new General(this, "xiahouba", "shu"); // SP 019
     xiahouba->addSkill(new Baobian);
+    xiahouba->addRelateSkill("tiaoxin");
+    xiahouba->addRelateSkill("paoxiao");
+    xiahouba->addRelateSkill("shensu");
 
     General *chenlin = new General(this, "chenlin", "wei", 3); // SP 020
     chenlin->addSkill(new Bifa);

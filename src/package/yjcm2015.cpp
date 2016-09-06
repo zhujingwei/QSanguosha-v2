@@ -1058,7 +1058,7 @@ public:
         if (malelist.isEmpty())
             return false;
 
-        ServerPlayer *male = room->askForPlayerChosen(player, malelist, objectName(), "@yjyanyu-give", true);
+        ServerPlayer *male = room->askForPlayerChosen(player, malelist, objectName(), "@yjyanyu-give", true, true);
 
         if (male != NULL) {
             player->broadcastSkillInvoke(objectName());

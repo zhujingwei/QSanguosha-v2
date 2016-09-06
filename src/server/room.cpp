@@ -637,8 +637,8 @@ void Room::handleAcquireDetachSkills(ServerPlayer *player, const QStringList &sk
             if (!skill) continue;
             bool acquired = false;
             if (player->getAcquiredSkills().contains(skill_name)) acquired = true;
-            player->acquireSkill(skill_name, reason);
             if (acquired) continue;
+            player->acquireSkill(skill_name, reason);
 
             if (skill->inherits("TriggerSkill")) {
                 const TriggerSkill *trigger_skill = qobject_cast<const TriggerSkill *>(skill);

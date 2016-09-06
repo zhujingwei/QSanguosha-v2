@@ -320,6 +320,7 @@ public:
 
             ShensuCard *card = new ShensuCard;
             card->addSubcards(cards);
+            card->setSkillName(objectName());
 
             return card;
         }
@@ -349,14 +350,6 @@ public:
                 xiahouyuan->skip(Player::Play, true);
         }
         return false;
-    }
-
-    int getEffectIndex(const ServerPlayer *player, const Card *) const
-    {
-        int index = qrand() % 2 + 1;
-        if (!player->hasInnateSkill(this) && player->hasSkill("baobian"))
-            index += 2;
-        return index;
     }
 };
 

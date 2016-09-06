@@ -108,7 +108,7 @@ void Skill::initMediaSource()
         sources.clear();
         foreach(const General *general, Sanguosha->getAllGenerals())
         {
-            if (!general->hasSkill(objectName()))
+            if (!general->hasSkill(objectName()) && !general->getRelatedSkillNames().contains(objectName()))
                 continue;
             QString general_name = general->objectName();
             QStringList tempSources;
