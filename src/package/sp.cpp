@@ -213,7 +213,7 @@ bool Yongsi::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *yuansh
         room->sendLog(log);
         room->notifySkillInvoked(yuanshu, objectName());
 
-        room->broadcastSkillInvoke(objectName());
+        yuanshu->broadcastSkillInvoke(objectName());
     } else if (triggerEvent == EventPhaseStart && yuanshu->getPhase() == Player::Discard) {
         int x = getKingdoms(yuanshu);
         LogMessage log;
@@ -746,7 +746,7 @@ public:
                 QStringList detachList;
                 foreach(QString skill_name, baobian_skills)
                     detachList.append("-" + skill_name);
-                room->handleAcquireDetachSkills(player, detachList);
+                room->handleAcquireDetachSkills(player, detachList, objectName());
                 player->tag["BaobianSkills"] = QVariant();
             }
             return false;
@@ -762,7 +762,7 @@ public:
         BaobianChange(room, player, 2, "paoxiao");
         BaobianChange(room, player, 3, "tiaoxin");
         if (!acquired_skills.isEmpty() || !detached_skills.isEmpty())
-            room->handleAcquireDetachSkills(player, acquired_skills + detached_skills);
+            room->handleAcquireDetachSkills(player, acquired_skills + detached_skills, objectName());
         return false;
     }
 
@@ -1179,23 +1179,23 @@ public:
     bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
     {
         if (triggerEvent == EventLoseSkill && data.toString() == objectName()) {
-            room->handleAcquireDetachSkills(player, "-tianxiang|-liuli", true);
+            room->handleAcquireDetachSkills(player, "-tianxiang|-liuli", objectName(), true);
         } else if (triggerEvent == EventAcquireSkill && data.toString() == objectName()) {
             if (!player->getPile("xingwu").isEmpty()) {
                 room->notifySkillInvoked(player, objectName());
-                room->handleAcquireDetachSkills(player, "tianxiang|liuli");
+                room->handleAcquireDetachSkills(player, "tianxiang|liuli", objectName());
             }
         } else if (triggerEvent == CardsMoveOneTime && player->isAlive() && player->hasSkill(this, true)) {
             CardsMoveOneTimeStruct move = data.value<CardsMoveOneTimeStruct>();
             if (move.to == player && move.to_place == Player::PlaceSpecial && move.to_pile_name == "xingwu") {
                 if (player->getPile("xingwu").length() == 1) {
                     room->notifySkillInvoked(player, objectName());
-                    room->handleAcquireDetachSkills(player, "tianxiang|liuli");
+                    room->handleAcquireDetachSkills(player, "tianxiang|liuli", objectName());
                 }
             } else if (move.from == player && move.from_places.contains(Player::PlaceSpecial)
                 && move.from_pile_names.contains("xingwu")) {
                 if (player->getPile("xingwu").isEmpty())
-                    room->handleAcquireDetachSkills(player, "-tianxiang|-liuli", true);
+                    room->handleAcquireDetachSkills(player, "-tianxiang|-liuli", objectName(), true);
             }
         }
         return false;
@@ -1579,7 +1579,7 @@ public:
                 if (!player->inMyAttackRange(sunluyu) && TriggerSkill::triggerable(sunluyu) && sunluyu->askForSkillInvoke(this)) {
                     room->broadcastSkillInvoke(objectName());
                     if (!player->hasSkill("zhixi", true))
-                        room->acquireSkill(player, "zhixi");
+                        room->acquireSkill(player, "zhixi", objectName());
                     if (sunluyu->getMark("mumu") == 0) {
                         QVariantList sunluyus = player->tag[objectName()].toList();
                         sunluyus << QVariant::fromValue(sunluyu);
@@ -1923,7 +1923,7 @@ public:
         if (diff < 0)
             room->drawCards(zhugedan, -diff, objectName());
         if (zhugedan->getMark("juyi") == 1)
-            room->handleAcquireDetachSkills(zhugedan, "benghuai|weizhong");
+            room->handleAcquireDetachSkills(zhugedan, "benghuai|weizhong", objectName());
 
         return false;
     }
@@ -2850,7 +2850,7 @@ public:
 
         room->setPlayerMark(hanba, objectName(), 1);
         if (room->changeMaxHpForAwakenSkill(hanba) && hanba->getMark("zhiri") > 0)
-            room->acquireSkill(hanba, "xintan");
+            room->acquireSkill(hanba, "xintan", objectName());
 
         return false;
     };

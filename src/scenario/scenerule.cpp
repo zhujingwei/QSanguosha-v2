@@ -26,7 +26,7 @@ bool SceneRule::trigger(TriggerEvent triggerEvent, Room* room, ServerPlayer *pla
             QString skill = QString("#%1").arg(extension);
             if (extension.startsWith("scene") && Sanguosha->getSkill(skill)) {
                 foreach(ServerPlayer *p, room->getPlayers())
-                    room->acquireSkill(p, skill);
+                    room->acquireSkill(p, skill, objectName());
             }
         }
     }

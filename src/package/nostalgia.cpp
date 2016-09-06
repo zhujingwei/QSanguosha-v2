@@ -289,7 +289,7 @@ public:
                 delete dummy;
 
                 if (diff) {
-                    room->handleAcquireDetachSkills(shuangying, "wusheng|paoxiao");
+                    room->handleAcquireDetachSkills(shuangying, "wusheng|paoxiao", objectName());
                     room->broadcastSkillInvoke(objectName(), 2);
                     shuangying->setFlags(objectName());
                 } else {
@@ -301,7 +301,7 @@ public:
         } else if (triggerEvent == EventPhaseChanging) {
             PhaseChangeStruct change = data.value<PhaseChangeStruct>();
             if (change.to == Player::NotActive && shuangying->hasFlag(objectName()))
-                room->handleAcquireDetachSkills(shuangying, "-wusheng|-paoxiao", true);
+                room->handleAcquireDetachSkills(shuangying, "-wusheng|-paoxiao", objectName(), true);
         }
 
         return false;

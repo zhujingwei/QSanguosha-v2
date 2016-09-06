@@ -220,7 +220,7 @@ bool MiniSceneRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer 
             QString skills = this->players.at(i)["acquireSkills"];
             if (skills != QString()) {
                 foreach(QString skill_name, skills.split(","))
-                    room->acquireSkill(sp, skill_name);
+                    room->acquireSkill(sp, skill_name, objectName());
             }
 
             if (this->players.at(i)["chained"] != QString()) {

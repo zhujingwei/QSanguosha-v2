@@ -138,7 +138,7 @@ void EquipCard::onInstall(ServerPlayer *player) const
         }
 
         if (isEquipSkillViewAsSkill(skill))
-            room->attachSkillToPlayer(player, objectName());
+            room->attachSkillToPlayer(player, objectName(), objectName());
     }
 }
 

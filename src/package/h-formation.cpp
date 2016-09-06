@@ -238,7 +238,7 @@ void HeyiCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targ
         if (!p->isAlive()) continue;
         list.append(p->objectName());
         source->tag["heyi"] = QVariant::fromValue(list);
-        room->acquireSkill(p, "feiying");
+        room->acquireSkill(p, "feiying", "heyi");
     }
 }
 
@@ -332,7 +332,7 @@ public:
                         room->sendLog(log);
                     }
                     jiangwei->addMark(objectName());
-                    room->acquireSkill(jiangwei, "kanpo");
+                    room->acquireSkill(jiangwei, "kanpo", objectName());
                 }
             }
         } else if (triggerEvent == EventPhaseChanging) {

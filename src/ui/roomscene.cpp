@@ -467,7 +467,7 @@ void RoomScene::handleGameEvent(const QVariant &args)
         QString skill_name = arg[2].toString();
 
         ClientPlayer *player = ClientInstance->getPlayer(player_name);
-        player->acquireSkill(skill_name);
+        player->acquireSkill(skill_name, objectName());
         acquireSkill(player, skill_name);
 
         PlayerCardContainer *container = (PlayerCardContainer *)_getGenericCardContainer(Player::PlaceHand, player);

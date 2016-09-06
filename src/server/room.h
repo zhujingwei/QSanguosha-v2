@@ -70,10 +70,10 @@ public:
     void gameOver(const QString &winner);
     void slashEffect(const SlashEffectStruct &effect);
     void slashResult(const SlashEffectStruct &effect, const Card *jink);
-    void attachSkillToPlayer(ServerPlayer *player, const QString &skill_name);
+    void attachSkillToPlayer(ServerPlayer *player, const QString &skill_name, const QString &reason);
     void detachSkillFromPlayer(ServerPlayer *player, const QString &skill_name, bool is_equip = false, bool acquire_only = false);
-    void handleAcquireDetachSkills(ServerPlayer *player, const QStringList &skill_names, bool acquire_only = false);
-    void handleAcquireDetachSkills(ServerPlayer *player, const QString &skill_names, bool acquire_only = false);
+    void handleAcquireDetachSkills(ServerPlayer *player, const QStringList &skill_names, const QString &reason, bool acquire_only = false);
+    void handleAcquireDetachSkills(ServerPlayer *player, const QString &skill_names, const QString &reason, bool acquire_only = false);
     void setPlayerFlag(ServerPlayer *player, const QString &flag);
     void setPlayerProperty(ServerPlayer *player, const char *property_name, const QVariant &value);
     void setPlayerMark(ServerPlayer *player, const QString &mark, int value);
@@ -253,8 +253,8 @@ public:
     void changePlayerGeneral2(ServerPlayer *player, const QString &new_general);
     void filterCards(ServerPlayer *player, QList<const Card *> cards, bool refilter);
 
-    void acquireSkill(ServerPlayer *player, const Skill *skill, bool open = true);
-    void acquireSkill(ServerPlayer *player, const QString &skill_name, bool open = true);
+    void acquireSkill(ServerPlayer *player, const Skill *skill, const QString &reason, bool open = true);
+    void acquireSkill(ServerPlayer *player, const QString &skill_name, const QString &reason, bool open = true);
     void adjustSeats();
     void swapPile();
     inline QList<int> getDiscardPile()

@@ -136,7 +136,7 @@ public:
 
     bool isLord() const;
 
-    void acquireSkill(const QString &skill_name);
+    void acquireSkill(const QString &skill_name, const QString &reason);
     void detachSkill(const QString &skill_name);
     void detachAllSkills();
     virtual void addSkill(const QString &skill_name);
@@ -244,6 +244,8 @@ public:
     void removeQinggangTag(const Card *card);
 
     void copyFrom(Player *p);
+    const QString getSkillSource(QString &skill_name) const;
+    QString getRootSkillName(const QString skill_name) const;
 
     QList<const Player *> getSiblings() const;
     QList<const Player *> getAliveSiblings() const;
@@ -260,6 +262,7 @@ protected:
     QStringList skills;
     QHash<QString, int> history;
     QSet<QString> flags;
+    QMultiMap<QString, QString> skills_gets;
 
 private:
     QString screen_name;

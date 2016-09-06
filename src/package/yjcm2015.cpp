@@ -825,7 +825,7 @@ void YanzhuCard::onEffect(const CardEffectStruct &effect) const
 
         if (effect.from->hasSkill("yanzhu", true)) {
             r->setPlayerMark(effect.from, "yanzhu_lost", 1);
-            r->handleAcquireDetachSkills(effect.from, "-yanzhu");
+            r->handleAcquireDetachSkills(effect.from, "-yanzhu", "yanzhu");
         }
     }
 }

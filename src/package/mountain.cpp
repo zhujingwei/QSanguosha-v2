@@ -266,7 +266,7 @@ public:
                 if (!skill->inherits("SPConvertSkill") && !skill->isAttachedLordSkill())
                     detachList.append("-" + skill->objectName());
             }
-            room->handleAcquireDetachSkills(death.damage->from, detachList);
+            room->handleAcquireDetachSkills(death.damage->from, detachList, objectName());
             if (death.damage->from->isAlive())
                 death.damage->from->gainMark("@duanchang");
         }
@@ -365,7 +365,7 @@ public:
 
         room->setPlayerMark(dengai, "zaoxian", 1);
         if (room->changeMaxHpForAwakenSkill(dengai) && dengai->getMark("zaoxian") == 1)
-            room->acquireSkill(dengai, "jixi");
+            room->acquireSkill(dengai, "jixi", objectName());
 
         return false;
     }
@@ -456,7 +456,7 @@ public:
 
         room->setPlayerMark(sunce, "hunzi", 1);
         if (room->changeMaxHpForAwakenSkill(sunce) && sunce->getMark("hunzi") == 1)
-            room->handleAcquireDetachSkills(sunce, "yingzi|yinghun");
+            room->handleAcquireDetachSkills(sunce, "yingzi|yinghun", objectName());
         return false;
     }
 };
@@ -561,7 +561,7 @@ public:
                 players = room->getOtherPlayers(lords.first());
             foreach (ServerPlayer *p, players) {
                 if (!p->hasSkill("zhiba_pindian"))
-                    room->attachSkillToPlayer(p, "zhiba_pindian");
+                    room->attachSkillToPlayer(p, "zhiba_pindian", objectName());
             }
         } else if (triggerEvent == EventLoseSkill && data.toString() == "zhiba") {
             QList<ServerPlayer *> lords;
@@ -699,7 +699,7 @@ public:
             else
                 room->drawCards(jiangwei, 2, objectName());
             if (jiangwei->getMark("zhiji") == 1)
-                room->acquireSkill(jiangwei, "guanxing");
+                room->acquireSkill(jiangwei, "guanxing", objectName());
         }
 
         return false;
@@ -1095,7 +1095,7 @@ public:
             if (room->changeMaxHpForAwakenSkill(liushan, 1)) {
                 room->recover(liushan, RecoverStruct(liushan));
                 if (liushan->getMark("ruoyu") == 1)
-                    room->acquireSkill(liushan, "jijiang");
+                    room->acquireSkill(liushan, "jijiang", objectName());
             }
         }
 
@@ -1276,6 +1276,7 @@ public:
 
         if (zuoci->getGender() != general->getGender())
             zuoci->setGender(general->getGender());
+        zuoci->tag["huashen_general"] = QVariant::fromValue(general->objectName());
 
         JsonArray arg;
         arg << QSanProtocol::S_GAME_EVENT_HUASHEN << zuoci->objectName() << general->objectName() << skill_name;
@@ -1284,7 +1285,7 @@ public:
         zuoci->tag["HuashenSkill"] = skill_name;
         if (!skill_name.isEmpty())
             ac_dt_list.append(skill_name);
-        room->handleAcquireDetachSkills(zuoci, ac_dt_list, true);
+        room->handleAcquireDetachSkills(zuoci, ac_dt_list, "huashen", true);
     }
 
     void onGameStart(ServerPlayer *zuoci) const

@@ -1610,8 +1610,9 @@ void Client::attachSkill(const QVariant &skill)
 {
     if (!JsonUtils::isString(skill)) return;
 
-    QString skill_name = skill.toString();
-    Self->acquireSkill(skill_name);
+    QString skill_name = skill.toString().split(":").first();
+    QString reason = skill.toString().split(":").last();
+    Self->acquireSkill(skill_name, reason);
     emit skill_attached(skill_name);
 }
 

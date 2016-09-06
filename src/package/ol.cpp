@@ -2273,10 +2273,10 @@ public:
 
                     QString choice = room->askForChoice(player, "oljixi", choices.join("+"));
                     if (choice == "wangzun")
-                        room->handleAcquireDetachSkills(player, "wangzun");
+                        room->handleAcquireDetachSkills(player, "wangzun", objectName());
                     else {
                         room->drawCards(player, 2, "oljixi");
-                        room->handleAcquireDetachSkills(player, lordskills);
+                        room->handleAcquireDetachSkills(player, lordskills, objectName());
                     }
                 }
             }

@@ -466,7 +466,7 @@ public:
                 if (player->getWeapon())
                     room->throwCard(player->getWeapon(), player);
                 if (player->getMark("zhanshen") == 1)
-                    room->handleAcquireDetachSkills(player, "mashu|shenji");
+                    room->handleAcquireDetachSkills(player, "mashu|shenji", objectName());
             }
         }
         return false;

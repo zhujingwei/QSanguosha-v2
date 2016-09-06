@@ -91,7 +91,7 @@ public:
                 }
 
                 room->recover(player, RecoverStruct());
-                room->handleAcquireDetachSkills(player, "-liangzhu|xiaoji");
+                room->handleAcquireDetachSkills(player, "-liangzhu|xiaoji", objectName());
             }
         }
         return false;
@@ -187,7 +187,7 @@ public:
         room->doSuperLightbox("jsp_guanyu", "jspdanqi");
         room->setPlayerMark(target, objectName(), 1);
         if (room->changeMaxHpForAwakenSkill(target) && target->getMark(objectName()) > 0)
-            room->handleAcquireDetachSkills(target, "mashu|nuzhan");
+            room->handleAcquireDetachSkills(target, "mashu|nuzhan", objectName());
 
         return false;
     }
@@ -286,7 +286,7 @@ public:
         if (room->changeMaxHpForAwakenSkill(player) && player->getMark(objectName()) > 0) {
             int recover = 2 - player->getHp();
             room->recover(player, RecoverStruct(NULL, NULL, recover));
-            room->handleAcquireDetachSkills(player, "tiaoxin");
+            room->handleAcquireDetachSkills(player, "tiaoxin", objectName());
 
             if (player->hasSkill("kunfen", true))
                 room->doNotify(player, QSanProtocol::S_COMMAND_UPDATE_SKILL, QVariant("kunfen"));
@@ -399,7 +399,7 @@ public:
         room->doSuperLightbox("jsp_zhaoyun", "suiren");
         room->setPlayerMark(target, "@suiren", 0);
 
-        room->handleAcquireDetachSkills(target, "-yicong");
+        room->handleAcquireDetachSkills(target, "-yicong", objectName());
         int maxhp = target->getMaxHp() + 1;
         room->setPlayerProperty(target, "maxhp", maxhp);
         room->recover(target, RecoverStruct());
@@ -574,13 +574,13 @@ public:
     bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
     {
         if (triggerEvent == EventLoseSkill && data.toString() == "linglong") {
-            room->handleAcquireDetachSkills(player, "-qicai", true);
+            room->handleAcquireDetachSkills(player, "-qicai", objectName(), true);
             player->setMark("linglong_qicai", 0);
         }
         else if ((triggerEvent == EventAcquireSkill && data.toString() == "linglong") || (triggerEvent == GameStart && TriggerSkill::triggerable(player))) {
             if (player->getTreasure() == NULL) {
                 room->notifySkillInvoked(player, objectName());
-                room->handleAcquireDetachSkills(player, "qicai");
+                room->handleAcquireDetachSkills(player, "qicai", objectName());
                 player->setMark("linglong_qicai", 1);
             }
         }
@@ -589,13 +589,13 @@ public:
             if (move.from == player && move.from_places.contains(Player::PlaceEquip)) {
                 if (player->getTreasure() == NULL && player->getMark("linglong_qicai") == 0) {
                     room->notifySkillInvoked(player, objectName());
-                    room->handleAcquireDetachSkills(player, "qicai");
+                    room->handleAcquireDetachSkills(player, "qicai", objectName());
                     player->setMark("linglong_qicai", 1);
                 }
             }
             else if (move.to == player && move.to_place == Player::PlaceEquip) {
                 if (player->getTreasure() != NULL && player->getMark("linglong_qicai") == 1) {
-                    room->handleAcquireDetachSkills(player, "-qicai", true);
+                    room->handleAcquireDetachSkills(player, "-qicai", objectName(), true);
                     player->setMark("linglong_qicai", 0);
                 }
             }
@@ -916,7 +916,7 @@ public:
                     foreach(const Skill *sk, target->getGeneral()->getVisibleSkillList()) {
                         if (sk->isLordSkill() && !target->hasSkill(sk))
                         {
-                            room->acquireSkill(target, sk->objectName());
+                            room->acquireSkill(target, sk->objectName(), objectName());
                         }
                     }
                     if (target->getGeneral2() != NULL)
@@ -924,7 +924,7 @@ public:
                         foreach(const Skill *sk, target->getGeneral2()->getVisibleSkillList()) {
                             if (sk->isLordSkill() && !target->hasSkill(sk))
                             {
-                                room->acquireSkill(target, sk->objectName());
+                                room->acquireSkill(target, sk->objectName(), objectName());
                             }
                         }
                     }

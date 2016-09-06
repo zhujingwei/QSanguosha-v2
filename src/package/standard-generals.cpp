@@ -1472,7 +1472,7 @@ public:
 
         room->setPlayerMark(player, "qianxin", 1);
         if (room->changeMaxHpForAwakenSkill(player) && player->getMark("qianxin") == 1)
-            room->acquireSkill(player, "jianyan");
+            room->acquireSkill(player, "jianyan", objectName());
 
         return false;
     }
@@ -1724,7 +1724,7 @@ public:
 
         room->setPlayerMark(lvmeng, "qinxue", 1);
         if (room->changeMaxHpForAwakenSkill(lvmeng) && lvmeng->getMark("qinxue") == 1)
-            room->acquireSkill(lvmeng, "gongxin");
+            room->acquireSkill(lvmeng, "gongxin", objectName());
 
         return false;
     }

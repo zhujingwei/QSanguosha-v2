@@ -210,11 +210,11 @@ public:
             ServerPlayer *guanyu = room->findPlayer("guanyu");
             room->installEquip(guanyu, "blade");
             room->installEquip(guanyu, "chitu");
-            room->acquireSkill(guanyu, "zhanshuangxiong");
+            room->acquireSkill(guanyu, "zhanshuangxiong", objectName());
 
 
             ServerPlayer *zhangliao = room->findPlayer("nos_zhangliao");
-            room->handleAcquireDetachSkills(zhangliao, "-nostuxi|smalltuxi");
+            room->handleAcquireDetachSkills(zhangliao, "-nostuxi|smalltuxi", objectName());
 
             break;
         }
@@ -327,14 +327,14 @@ void GuanduScenario::onTagSet(Room *room, const QString &) const
     if (burnwuchao) {
         ServerPlayer *zhangliao = room->findPlayer("nos_zhangliao");
         if (zhangliao && !zhangliao->hasSkill("nostuxi"))
-            room->handleAcquireDetachSkills(zhangliao, "-smalltuxi|nostuxi");
+            room->handleAcquireDetachSkills(zhangliao, "-smalltuxi|nostuxi", objectName());
     }
     if (zhanshuangxiong && burnwuchao) {
         ServerPlayer *guojia = room->findPlayer("nos_guojia");
         if (guojia && !guojia->hasSkill("greatyiji")) {
             room->detachSkillFromPlayer(guojia, "nosyiji");
-            room->acquireSkill(guojia, "greatyiji");
-            room->acquireSkill(guojia, "damagebeforeplay", false);
+            room->acquireSkill(guojia, "greatyiji", objectName());
+            room->acquireSkill(guojia, "damagebeforeplay", objectName(), false);
         }
     }
 }

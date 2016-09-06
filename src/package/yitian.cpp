@@ -279,7 +279,7 @@ public:
                 QString skill_name = room->askForChoice(weiwudi, objectName(), lord_skills.join("+"));
 
                 const Skill *skill = Sanguosha->getSkill(skill_name);
-                room->acquireSkill(weiwudi, skill);
+                room->acquireSkill(weiwudi, skill, objectName());
             }
         }
         return false;
@@ -429,7 +429,7 @@ public:
         room->setPlayerMark(lukang, objectName(), 1);
 
         if (room->changeMaxHpForAwakenSkill(lukang) && lukang->getMark(objectName()) > 0)
-            room->acquireSkill(lukang, "lianying");
+            room->acquireSkill(lukang, "lianying", objectName());
 
         return false;
     }
@@ -680,7 +680,7 @@ public:
                 }
 
                 zhangfei->gainMark("@tied");
-                room->attachSkillToPlayer(zhangfei, "lianli-slash");
+                room->attachSkillToPlayer(zhangfei, "lianli-slash", objectName());
             }
 
             if (target->hasSkill("liqian") && target->getKingdom() != zhangfei->getKingdom())
@@ -1595,7 +1595,7 @@ public:
             if (killer != player) {
                 room->broadcastSkillInvoke(objectName());
                 killer->gainMark("@collapse");
-                room->acquireSkill(killer, "benghuai");
+                room->acquireSkill(killer, "benghuai", objectName());
             }
 
 
@@ -1917,7 +1917,7 @@ public:
     {
         Room *room = player->getRoom();
         foreach (ServerPlayer *p, room->getOtherPlayers(player))
-            room->attachSkillToPlayer(p, "ytyishe_ask");
+            room->attachSkillToPlayer(p, "ytyishe_ask", objectName());
     }
 };
 

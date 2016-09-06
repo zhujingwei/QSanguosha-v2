@@ -636,7 +636,7 @@ public:
             || (triggerEvent == EventAcquireSkill && data.toString() == "xiansi")) {
             foreach (ServerPlayer *p, room->getOtherPlayers(player)) {
                 if (!p->hasSkill("xiansi_slash"))
-                    room->attachSkillToPlayer(p, "xiansi_slash");
+                    room->attachSkillToPlayer(p, "xiansi_slash", objectName());
             }
         } else if (triggerEvent == EventLoseSkill && data.toString() == "xiansi") {
             foreach (ServerPlayer *p, room->getOtherPlayers(player)) {
@@ -647,7 +647,7 @@ public:
             QList<ServerPlayer *> liufengs = room->findPlayersBySkillName("xiansi");
             foreach (ServerPlayer *liufeng, liufengs) {
                 if (player != liufeng && !player->hasSkill("xiansi_attach")) {
-                    room->attachSkillToPlayer(player, "xiansi_attach");
+                    room->attachSkillToPlayer(player, "xiansi_attach", objectName());
                     break;
                 }
             }

@@ -712,7 +712,7 @@ void WuqianCard::onEffect(const CardEffectStruct &effect) const
     Room *room = effect.to->getRoom();
 
     effect.from->loseMark("@wrath", 2);
-    room->acquireSkill(effect.from, "wushuang");
+    room->acquireSkill(effect.from, "wushuang", "wuqian");
     effect.from->setFlags("WuqianSource");
     effect.to->setFlags("WuqianTarget");
     room->addPlayerMark(effect.to, "Armor_Nullified");
@@ -1179,7 +1179,7 @@ public:
 
         room->setPlayerMark(shensimayi, "baiyin", 1);
         if (room->changeMaxHpForAwakenSkill(shensimayi) && shensimayi->getMark("baiyin") == 1)
-            room->acquireSkill(shensimayi, "jilve");
+            room->acquireSkill(shensimayi, "jilve", "baiyin");
 
         return false;
     }
@@ -1216,7 +1216,7 @@ void JilveCard::onUse(Room *room, const CardUseStruct &card_use) const
 
     if (choice == "wansha") {
         room->setPlayerFlag(shensimayi, "JilveWansha");
-        room->acquireSkill(shensimayi, "wansha");
+        room->acquireSkill(shensimayi, "wansha", "jilve");
     } else {
         room->setPlayerFlag(shensimayi, "JilveZhiheng");
         room->askForUseCard(shensimayi, "@zhiheng", "@jilve-zhiheng", -1, Card::MethodDiscard);

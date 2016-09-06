@@ -186,9 +186,9 @@ void CunsiCard::onEffect(const CardEffectStruct &effect) const
 
     room->doSuperLightbox("mifuren", "cunsi");
 
-    room->handleAcquireDetachSkills(effect.from, "-guixiu|-cunsi");
+    room->handleAcquireDetachSkills(effect.from, "-guixiu|-cunsi", "cunsi");
 
-    room->acquireSkill(effect.to, "yongjue");
+    room->acquireSkill(effect.to, "yongjue", "cunsi");
     if (effect.to != effect.from)
         effect.to->drawCards(2, "cunsi");
 }
@@ -522,7 +522,7 @@ public:
         if (room->changeMaxHpForAwakenSkill(player, 3)) {
             room->recover(player, RecoverStruct(player, NULL, 3));
             if (player->getMark("baoling") == 1)
-                room->acquireSkill(player, "benghuai");
+                room->acquireSkill(player, "benghuai", objectName());
         }
 
         return false;

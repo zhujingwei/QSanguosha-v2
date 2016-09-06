@@ -60,7 +60,7 @@ public:
         case GameStart:{
             if (!player) {
                 foreach(ServerPlayer *p, room->getPlayers())
-                    room->acquireSkill(p, "peaching");
+                    room->acquireSkill(p, "peaching", objectName());
             }
             break;
         }

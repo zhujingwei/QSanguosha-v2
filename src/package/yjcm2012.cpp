@@ -615,14 +615,14 @@ public:
             DamageStruct damage = data.value<DamageStruct>();
             if (damage.card && damage.card->isKindOf("Slash") && damage.card->getSkillName() == objectName()
                 && player->getPhase() == Player::Play) {
-                room->handleAcquireDetachSkills(player, "wusheng|paoxiao");
+                room->handleAcquireDetachSkills(player, "wusheng|paoxiao", objectName());
                 room->broadcastSkillInvoke(objectName(), 2);
                 player->setFlags(objectName());
             }
         } else if (triggerEvent == EventPhaseChanging) {
             PhaseChangeStruct change = data.value<PhaseChangeStruct>();
             if (change.to == Player::NotActive && player->hasFlag(objectName()))
-                room->handleAcquireDetachSkills(player, "-wusheng|-paoxiao", true);
+                room->handleAcquireDetachSkills(player, "-wusheng|-paoxiao", objectName(), true);
         }
 
         return false;
@@ -1144,7 +1144,7 @@ public:
             else
                 room->drawCards(zhonghui, 2, objectName());
             if (zhonghui->getMark("zili") == 1)
-                room->acquireSkill(zhonghui, "paiyi");
+                room->acquireSkill(zhonghui, "paiyi", objectName());
         }
 
         return false;

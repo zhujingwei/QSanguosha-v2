@@ -915,7 +915,7 @@ void GameRule::acquireBossSkills(ServerPlayer *player, int level) const
             QStringList subskills = skill.split("+");
             skill = subskills.at(qrand() % subskills.length());
         }
-        player->getRoom()->acquireSkill(player, skill);
+        player->getRoom()->acquireSkill(player, skill, objectName());
     }
 }
 
@@ -942,7 +942,7 @@ void GameRule::doBossModeDifficultySettings(ServerPlayer *lord) const
                 }
                 p->tag["BossModeAcquiredSkills"] = QVariant::fromValue(acquired);
                 if (!acquired.isEmpty())
-                    room->handleAcquireDetachSkills(p, acquired, true);
+                    room->handleAcquireDetachSkills(p, acquired, objectName(), true);
                 foreach (const Skill *skill, p->getSkillList()) {
                     if (skill->getFrequency() == Skill::Limited && !skill->getLimitMark().isEmpty())
                         room->setPlayerMark(p, skill->getLimitMark(), 1);
@@ -1062,7 +1062,7 @@ void GameRule::doBossModeDifficultySettings(ServerPlayer *lord) const
                     room->sendLog(log);
 
                     room->removePlayerMark(p, "@bossExp", cost);
-                    room->handleAcquireDetachSkills(p, skilllist, true);
+                    room->handleAcquireDetachSkills(p, skilllist, objectName(), true);
                 } else {
                     QString type = choice.split("|").last();
                     int cost = choice.split("]").first().mid(1).toInt();

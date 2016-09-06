@@ -204,7 +204,7 @@ public:
 
             if (player->getWeapon() == NULL) {
                 if (!player->hasSkill("paoxiao"))
-                    room->acquireSkill(player, "paoxiao");
+                    room->acquireSkill(player, "paoxiao", objectName());
             } else {
                 if (player->hasSkill("paoxiao"))
                     room->detachSkillFromPlayer(player, "paoxiao");
@@ -330,7 +330,7 @@ public:
             got_skill = all_skills[index];
 
         } while (hasSameSkill(room, got_skill));
-        room->acquireSkill(player, got_skill);
+        room->acquireSkill(player, got_skill, objectName());
     }
 
     bool hasSameSkill(Room *room, QString skill_name) const
@@ -391,11 +391,11 @@ public:
                 room->installEquip(player, "SilverLion");
                 qsrand(QTime(0, 0, 0).secsTo(QTime::currentTime()));
                 if ((qrand() % 2) == 1) {
-                    room->acquireSkill(player, "silue");
-                    room->acquireSkill(player, "kedi");
+                    room->acquireSkill(player, "silue", objectName());
+                    room->acquireSkill(player, "kedi", objectName());
                 } else {
-                    room->acquireSkill(player, "jishi");
-                    room->acquireSkill(player, "daji");
+                    room->acquireSkill(player, "jishi", objectName());
+                    room->acquireSkill(player, "daji", objectName());
                 }
 
                 int maxhp = 8 - ((player->getMaxHp() % 3) % 2);
@@ -489,11 +489,11 @@ public:
                     QList<ServerPlayer *> others = room->getOtherPlayers(player);
                     player->gainMark("@frantic", others.length());
                     room->setPlayerProperty(player, "maxhp", 3);
-                    room->acquireSkill(player, "guzhan");
-                    room->acquireSkill(player, "duduan");
-                    room->acquireSkill(player, "jizhan");
+                    room->acquireSkill(player, "guzhan", objectName());
+                    room->acquireSkill(player, "duduan", objectName());
+                    room->acquireSkill(player, "jizhan", objectName());
                     if (player->getWeapon() == NULL) {
-                        room->acquireSkill(player, "paoxiao");
+                        room->acquireSkill(player, "paoxiao", objectName());
                     }
 
                     QList<const Card *> judges = player->getCards("j");

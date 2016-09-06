@@ -320,23 +320,23 @@ public:
             player = room->getLord();
             room->installEquip(player, "chitu");
             room->installEquip(player, "blade");
-            room->acquireSkill(player, "flood");
-            room->acquireSkill(player, "xiansheng");
+            room->acquireSkill(player, "flood", objectName());
+            room->acquireSkill(player, "xiansheng", objectName());
 
             ServerPlayer *sp_pangde = room->findPlayer("sp_pangde");
-            room->acquireSkill(sp_pangde, "taichen_fight");
+            room->acquireSkill(sp_pangde, "taichen_fight", objectName());
 
             ServerPlayer *nos_huatuo = room->findPlayer("nos_huatuo");
             room->installEquip(nos_huatuo, "hualiu");
-            room->acquireSkill(nos_huatuo, "guagu");
+            room->acquireSkill(nos_huatuo, "guagu", objectName());
 
             ServerPlayer *lvmeng = room->findPlayer("lvmeng");
-            room->acquireSkill(lvmeng, "dujiang");
+            room->acquireSkill(lvmeng, "dujiang", objectName());
 
             ServerPlayer *caoren = room->findPlayer("caoren");
             room->installEquip(caoren, "renwang_shield");
-            room->acquireSkill(caoren, "zhiyuan");
-            room->acquireSkill(caoren, "#caoren-max-cards", false);
+            room->acquireSkill(caoren, "zhiyuan", objectName());
+            room->acquireSkill(caoren, "#caoren-max-cards", objectName(), false);
 
 
             break;

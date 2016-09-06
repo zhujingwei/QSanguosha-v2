@@ -767,12 +767,12 @@ public:
     {
         if (triggerEvent == GameStart) {
             lvmeng->gainMark("@wu");
-            room->handleAcquireDetachSkills(lvmeng, "jiang|qianxun");
+            room->handleAcquireDetachSkills(lvmeng, "jiang|qianxun", objectName());
         } else if (data.toString() == "mouduan") {
             if (lvmeng->getMark("@wu") > 0)
-                room->handleAcquireDetachSkills(lvmeng, "jiang|qianxun");
+                room->handleAcquireDetachSkills(lvmeng, "jiang|qianxun", objectName());
             else if (lvmeng->getMark("@wen") > 0)
-                room->handleAcquireDetachSkills(lvmeng, "yingzi|keji");
+                room->handleAcquireDetachSkills(lvmeng, "yingzi|keji", objectName());
         }
         return false;
     }
@@ -804,7 +804,7 @@ public:
 
                 player->loseMark("@wu");
                 player->gainMark("@wen");
-                room->handleAcquireDetachSkills(player, "-jiang|-qianxun|yingzi|keji", true);
+                room->handleAcquireDetachSkills(player, "-jiang|-qianxun|yingzi|keji", objectName(), true);
             }
         } else if (player->getPhase() == Player::RoundStart && lvmeng && lvmeng->getMark("@wen") > 0
             && lvmeng->canDiscard(lvmeng, "he") && room->askForCard(lvmeng, "..", "@mouduan", QVariant(), objectName())) {
@@ -812,7 +812,7 @@ public:
                 room->broadcastSkillInvoke(objectName());
                 lvmeng->loseMark("@wen");
                 lvmeng->gainMark("@wu");
-                room->handleAcquireDetachSkills(lvmeng, "-yingzi|-keji|jiang|qianxun", true);
+                room->handleAcquireDetachSkills(lvmeng, "-yingzi|-keji|jiang|qianxun", objectName(), true);
             }
         }
         return false;
@@ -830,10 +830,10 @@ public:
     {
         if (player->getMark("@wu") > 0) {
             player->loseMark("@wu");
-            room->handleAcquireDetachSkills(player, "-jiang|-qianxun", true);
+            room->handleAcquireDetachSkills(player, "-jiang|-qianxun", objectName(), true);
         } else if (player->getMark("@wen") > 0) {
             player->loseMark("@wen");
-            room->handleAcquireDetachSkills(player, "-yingzi|-keji", true);
+            room->handleAcquireDetachSkills(player, "-yingzi|-keji", objectName(), true);
         }
     }
 };
@@ -2092,14 +2092,14 @@ public:
                 liuxie->tag["HantongOriginData"] = data; // For AI
                 if (room->askForSkillInvoke(liuxie, "hantong_acquire", data_for_ai)) {
                     RemoveEdict(liuxie);
-                    room->acquireSkill(liuxie, "jijiang");
+                    room->acquireSkill(liuxie, "jijiang", "hantong");
                 }
             } else if (pattern == "jink") {
                 QVariant data_for_ai = "hujia";
                 liuxie->tag["HantongOriginData"] = data; // For AI
                 if (room->askForSkillInvoke(liuxie, "hantong_acquire", data_for_ai)) {
                     RemoveEdict(liuxie);
-                    room->acquireSkill(liuxie, "hujia");
+                    room->acquireSkill(liuxie, "hujia", "hantong");
                 }
             }
             break;
@@ -2113,7 +2113,7 @@ public:
             QVariant data_for_ai = "jiuyuan";
             if (room->askForSkillInvoke(liuxie, "hantong_acquire", data_for_ai)) {
                 RemoveEdict(liuxie);
-                room->acquireSkill(liuxie, "jiuyuan");
+                room->acquireSkill(liuxie, "jiuyuan", "hantong");
             }
             break;
         }
@@ -2124,7 +2124,7 @@ public:
             if (room->askForSkillInvoke(liuxie, "hantong_acquire", data_for_ai)) {
                 room->broadcastSkillInvoke("hantong", 2);
                 RemoveEdict(liuxie);
-                room->acquireSkill(liuxie, "xueyi");
+                room->acquireSkill(liuxie, "xueyi", "hantong");
             }
             break;
         }
@@ -2158,7 +2158,7 @@ public:
         foreach (ServerPlayer *p, room->getAllPlayers()) {
             if (!p->tag.value("Hantong_use", false).toBool())
                 continue;
-            room->handleAcquireDetachSkills(p, "-hujia|-jijiang|-jiuyuan|-xueyi", true);
+            room->handleAcquireDetachSkills(p, "-hujia|-jijiang|-jiuyuan|-xueyi", objectName(), true);
             p->tag.remove("Hantong_use");
         }
         return false;
@@ -2173,7 +2173,7 @@ const Card *HantongCard::validate(CardUseStruct &cardUse) const
 
     HantongAcquire::RemoveEdict(source);
     source->tag["Hantong_use"] = true;
-    room->acquireSkill(source, "jijiang");
+    room->acquireSkill(source, "jijiang", "hantong");
     if (!room->askForUseCard(source, "@jijiang", "@hantong-jijiang")) {
         room->setPlayerFlag(source, "Global_JijiangFailed");
         return NULL;

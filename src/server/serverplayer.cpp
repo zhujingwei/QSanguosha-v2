@@ -53,8 +53,9 @@ Room *ServerPlayer::getRoom() const
  {
      if (Sanguosha->getSkill(name) != NULL)
      {
-         //todo:双将技能来源判断
-         room->broadcastSkillInvoke(name, getGeneralName(), type);
+         QString &skill_name = QString(name);
+         const QString general_name = Player::getSkillSource(skill_name);
+         room->broadcastSkillInvoke(skill_name, general_name, type);
      }
      else
          room->broadcastSkillInvoke(name, isMale(), -1);
@@ -74,17 +75,19 @@ void ServerPlayer::broadcastSkillInvoke(const Card *card) const
             room->broadcastSkillInvoke(card->getCommonEffectName(), "common");
         return;
     } else {
+        QString &real_skill_name = QString(skill_name);
+        const QString general_name = Player::getSkillSource(real_skill_name);
+
         int index = skill->getEffectIndex(this, card);
         if (index == 0) return;
 
-        //todo:双将技能来源判断
-        if ((index == -1 && skill->getSources(getGeneralName()).isEmpty()) || index == -2) {
+        if ((index == -1 && skill->getSources(general_name).isEmpty()) || index == -2) {
             if (card->getCommonEffectName().isNull())
                 broadcastSkillInvoke(card->objectName());
             else
                 room->broadcastSkillInvoke(card->getCommonEffectName(), "common");
         } else
-            room->broadcastSkillInvoke(skill_name, getGeneralName(), index);
+            room->broadcastSkillInvoke(real_skill_name, general_name, index);
     }
 }
 

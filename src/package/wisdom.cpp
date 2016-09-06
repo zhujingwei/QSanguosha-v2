@@ -946,7 +946,7 @@ public:
 
         if (room->changeMaxHpForAwakenSkill(player) && player->getMark("jiehuo") > 0) {
             player->loseAllMarks("@shouye");
-            room->acquireSkill(player, "shien");
+            room->acquireSkill(player, "shien", objectName());
         }
         return false;
     }

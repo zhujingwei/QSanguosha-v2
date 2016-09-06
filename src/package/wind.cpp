@@ -53,10 +53,7 @@ public:
         const Card *card = room->askForCard(player, ".|black", prompt, QVariant::fromValue(judge), Card::MethodResponse, judge->who, true);
 
         if (card != NULL) {
-            int index = qrand() % 2 + 1;
-            if (Player::isNostalGeneral(player, "zhangjiao"))
-                index += 2;
-            room->broadcastSkillInvoke(objectName(), index);
+            player->broadcastSkillInvoke(objectName());
         }
 
         return card;
@@ -91,7 +88,7 @@ public:
             if (!victim)
                 return false;
 
-            room->broadcastSkillInvoke("leiji");
+            player->broadcastSkillInvoke(objectName());
             JudgeStruct judge;
             judge.who = victim;
             judge.pattern = ".|black";
@@ -145,14 +142,7 @@ void HuangtianCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> 
     if (zhangjiao->hasLordSkill("huangtian")) {
         room->setPlayerFlag(zhangjiao, "HuangtianInvoked");
 
-        if (!zhangjiao->isLord() && zhangjiao->hasSkill("weidi"))
-            room->broadcastSkillInvoke("weidi");
-        else {
-            int index = qrand() % 2 + 1;
-            if (Player::isNostalGeneral(zhangjiao, "zhangjiao"))
-                index += 2;
-            room->broadcastSkillInvoke("huangtian", index);
-        }
+        zhangjiao->broadcastSkillInvoke("huangtian");
 
         room->notifySkillInvoked(zhangjiao, "huangtian");
         CardMoveReason reason(CardMoveReason::S_REASON_GIVE, source->objectName(), zhangjiao->objectName(), "huangtian", QString());
@@ -233,7 +223,7 @@ public:
                 players = room->getOtherPlayers(lords.first());
             foreach (ServerPlayer *p, players) {
                 if (!p->hasSkill("huangtian_attach"))
-                    room->attachSkillToPlayer(p, "huangtian_attach");
+                    room->attachSkillToPlayer(p, "huangtian_attach", objectName());
             }
         } else if (triggerEvent == EventLoseSkill && data.toString() == "huangtian") {
             QList<ServerPlayer *> lords;
@@ -1022,7 +1012,7 @@ bool GuhuoCard::guhuo(ServerPlayer *yuji) const
         foreach (ServerPlayer *player, players) {
             room->setEmotion(player, ".");
             if (success && questioned == player)
-                room->acquireSkill(questioned, "chanyuan");
+                room->acquireSkill(questioned, "chanyuan", "guhuo");
         }
     }
     yuji->tag.remove("GuhuoSaveSelf");

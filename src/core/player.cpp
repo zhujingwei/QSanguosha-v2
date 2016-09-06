@@ -488,9 +488,15 @@ bool Player::hasLordSkill(const Skill *skill, bool include_lose /* = false */) c
     return hasLordSkill(skill->objectName(), include_lose);
 }
 
-void Player::acquireSkill(const QString &skill_name)
+void Player::acquireSkill(const QString &skill_name, const QString &reason)
 {
     acquired_skills.append(skill_name);
+    if (hasSkill(reason))
+    {
+        if (skills_gets.key(skill_name, NULL) != NULL)
+            skills_gets.values(reason).removeOne(skill_name);
+        skills_gets.insertMulti(reason, skill_name);
+    }
 }
 
 void Player::detachSkill(const QString &skill_name)
@@ -1329,4 +1335,42 @@ void Player::loseAttachLordSkill( const QString &skill_name )
     {
         loseSkill(skill_name);
     }
+}
+
+const QString Player::getSkillSource(QString &skill_name) const
+{
+    const General *general1 = getGeneral();
+    const General *general2 = getGeneral2();
+    QString general_name;
+    if (general1->hasSkill(skill_name) && !general1->getRelatedSkillNames().contains(skill_name))
+    {
+        general_name = general1->objectName();
+    }
+    else if (general2 != NULL && general2->hasSkill(skill_name) && !general2->getRelatedSkillNames().contains(skill_name))
+    {
+        general_name = general2->objectName();
+    }
+    else if (Sanguosha->getSkill(skill_name)->isLordSkill() && hasLordSkill(skill_name) && !isLord())
+    {
+        if (hasSkill("weidi"))
+            skill_name = "weidi";
+        general_name = getSkillSource(skill_name);
+    }
+    else if (getRootSkillName(skill_name) != NULL)
+    {
+        QString root_skill = getRootSkillName(skill_name);
+        if (root_skill == "huashen")
+        {
+            general_name = tag["huashen_general"].value<QString>();
+        }
+        else
+            general_name = getSkillSource(root_skill);
+    }
+
+    return general_name;
+}
+
+QString Player::getRootSkillName(const QString skill_name) const
+{
+    return skills_gets.key(skill_name, NULL);
 }
