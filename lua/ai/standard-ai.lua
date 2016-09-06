@@ -295,7 +295,7 @@ sgs.ai_choicemade_filter.skillInvoke.ganglie = function(self, player, promptlist
 end
 
 sgs.ai_skill_discard.qingjian = function(self, discard_num, optional, include_equip)
-    local card_ids = self.player:getTag("qingjian")
+    local card_ids = self.player:getTag("qingjian"):toIntList()
     local cards, to_give = {}, {}
     for _,id in sgs.qlist(card_ids) do
         table.insert(cards, sgs.Sanguosha:getCard(id))
@@ -303,12 +303,47 @@ sgs.ai_skill_discard.qingjian = function(self, discard_num, optional, include_eq
     
     for i = 1, #cards, 1 do
         local card, friend = self:getCardNeedPlayer(cards, true)
-        if friend:objectName() ~= self.player:objectName() then
-            table.insert(to_give, card)
+        if friend and friend:objectName() ~= self.player:objectName() then
+            table.insert(to_give, card:getEffectiveId())
+        end
+        table.removeOne(cards, card)
+        if #cards == 0 then
+            break
         end
     end
 
     return to_give
+end
+
+sgs.ai_skill_use["@@qingjian!"] = function(self, prompt)
+    local card_ids = self.player:getPile("qingjian")
+    assert(card_ids)
+    local ret_card, ret_target
+    local cards, to_give = {}, {}
+    for _,id in sgs.qlist(card_ids) do
+        table.insert(cards, sgs.Sanguosha:getCard(id))
+    end
+    ret_card = cards[math.random(1, #cards)]
+    self:sort(self.friends_noself)
+    ret_target = self.friends_noself[1]
+    
+    for i = 1, #cards, 1 do
+        local card, friend = self:getCardNeedPlayer(cards, true)
+        if friend and card then
+            table.insert(to_give, card:getEffectiveId())
+        end
+        table.removeOne(cards, card)
+        if #cards == 0 then
+            break
+        end
+    end
+    
+	local card, friend = self:getCardNeedPlayer(cards, false)
+    if friend and card then
+		ret_card = card
+        ret_target = friend
+	end
+	return "@QingjianCard=" .. ret_card:getEffectiveId() .. "->" .. ret_target:objectName()
 end
 
 sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
