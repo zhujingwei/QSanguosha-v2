@@ -152,6 +152,10 @@ sgs.ai_skill_invoke.qingxi = function(self, data)
     return true
 end
 
+sgs.ai_cardneed.qingxi = function(to, card)
+    return card:getTypeId() == sgs.Card_TypeEquip or card:isKindOf("Slash")
+end
+
 -- huaiyi buhui!!!
 --HuaiyiCard:Play
 huaiyi_skill = {

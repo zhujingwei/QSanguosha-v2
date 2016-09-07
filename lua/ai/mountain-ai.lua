@@ -671,6 +671,10 @@ sgs.ai_cardneed.jiang = function(to, card, self)
 	return isCard("Duel", card, to) or (isCard("Slash", card, to) and card:isRed())
 end
 
+sgs.ai_skill_invoke.jiang = function(self, data)
+    return not self:needKongcheng(self.player)
+end
+
 local zhiba_pindian_skill = {}
 zhiba_pindian_skill.name = "zhiba_pindian"
 table.insert(sgs.ai_skills, zhiba_pindian_skill)

@@ -1503,6 +1503,7 @@ end
 
 
 dofile "lua/ai/guanxing-ai.lua"
+sgs.ai_skill_invoke.guanxing = true
 
 local longdan_skill={}
 longdan_skill.name="longdan"
