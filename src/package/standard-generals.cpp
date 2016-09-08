@@ -2648,6 +2648,60 @@ public:
     }
 };
 
+class Yicong : public DistanceSkill
+{
+public:
+    Yicong() : DistanceSkill("yicong")
+    {
+    }
+
+    int getCorrect(const Player *from, const Player *to) const
+    {
+        int correct = 0;
+        if (from->hasSkill(this) && from->getHp() > 2)
+            correct--;
+        if (to->hasSkill(this) && to->getHp() <= 2)
+            correct++;
+
+        return correct;
+    }
+};
+
+class YicongEffect : public TriggerSkill
+{
+public:
+    YicongEffect() : TriggerSkill("#yicong-effect")
+    {
+        events << HpChanged;
+    }
+
+    bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
+    {
+        int hp = player->getHp();
+        int index = 0;
+        int reduce = 0;
+        if (data.canConvert<RecoverStruct>()) {
+            int rec = data.value<RecoverStruct>().recover;
+            if (hp > 2 && hp - rec <= 2)
+                index = 2;
+        } else {
+            if (data.canConvert<DamageStruct>()) {
+                DamageStruct damage = data.value<DamageStruct>();
+                reduce = damage.damage;
+            } else if (!data.isNull()) {
+                reduce = data.toInt();
+            }
+            if (hp <= 2 && hp + reduce > 2)
+                index = 1;
+        }
+        if (index != 0) {
+            room->notifySkillInvoked(player, "yicong");
+            player->broadcastSkillInvoke("yicong", index);
+        }
+        return false;
+    }
+};
+
 class Xiaoxi : public TriggerSkill
 {
 public:
@@ -2814,7 +2868,9 @@ void StandardPackage::addGenerals()
 
     General *st_gongsunzan = new General(this, "st_gongsunzan", "qun"); // QUN 026
     st_gongsunzan->addSkill(new Qiaomeng);
-    st_gongsunzan->addSkill("yicong");
+    st_gongsunzan->addSkill(new Yicong);
+    st_gongsunzan->addSkill(new YicongEffect);
+    related_skills.insertMulti("yicong", "#yicong-effect");
 
     // for skill cards
     addMetaObject<ZhihengCard>();

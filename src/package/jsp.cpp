@@ -940,6 +940,7 @@ JSPPackage::JSPPackage()
     General *jsp_sunshangxiang = new General(this, "jsp_sunshangxiang", "shu", 3, false); // JSP 001
     jsp_sunshangxiang->addSkill(new Liangzhu);
     jsp_sunshangxiang->addSkill(new Fanxiang);
+    jsp_sunshangxiang->addRelateSkill("xiaoji");
 
     General *jsp_machao = new General(this, "jsp_machao", "qun");
     jsp_machao->addSkill(new JSPZhuiji);
@@ -953,6 +954,7 @@ JSPPackage::JSPPackage()
     General *jsp_jiangwei = new General(this, "jsp_jiangwei", "wei");
     jsp_jiangwei->addSkill(new Kunfen);
     jsp_jiangwei->addSkill(new Fengliang);
+    jsp_jiangwei->addRelateSkill("tiaoxin");
 
     General *jsp_zhaoyun = new General(this, "jsp_zhaoyun", "qun", 3);
     jsp_zhaoyun->addSkill(new ChixinTrigger);

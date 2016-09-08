@@ -633,8 +633,7 @@ public:
 
     bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
     {
-        if (triggerEvent == AskForPeaches)
-        {
+        if (triggerEvent == AskForPeaches) {
             if (player == room->getAllPlayers().first()) {
                 DyingStruct dying = data.value<DyingStruct>();
                 ServerPlayer *jiaxu = room->getCurrent();
@@ -648,45 +647,34 @@ public:
                 if (jiaxu != dying.who) {
                     log.type = "#WanshaTwo";
                     log.to << dying.who;
-                }
-                else {
+                } else {
                     log.type = "#WanshaOne";
                 }
                 room->sendLog(log);
             }
-        }
-        else if (triggerEvent == EventPhaseStart)
-        {
+        } else if (triggerEvent == EventPhaseStart) {
             if (player != room->getCurrent())
                 return false;
 
-            if (player->getPhase() == Player::RoundStart)
-            {
-                foreach(ServerPlayer *p, room->getOtherPlayers(player))
+            if (player->getPhase() == Player::RoundStart) {
+                foreach (ServerPlayer *p, room->getOtherPlayers(player))
                     room->addPlayerMark(p, "Global_PreventPeach");
             }
-        }
-        else if (triggerEvent == EventPhaseChanging)
-        {
+        } else if (triggerEvent == EventPhaseChanging) {
             if (player != room->getCurrent())
                 return false;
 
             PhaseChangeStruct change = data.value<PhaseChangeStruct>();
-            if (change.to == Player::NotActive)
-            {
-                foreach(ServerPlayer *p, room->getOtherPlayers(player))
+            if (change.to == Player::NotActive) {
+                foreach (ServerPlayer *p, room->getOtherPlayers(player))
                     room->removePlayerMark(p, "Global_PreventPeach");
             }
-        }
-        else if (triggerEvent == EnterDying)
-        {
+        } else if (triggerEvent == EnterDying) {
             if (player == room->getCurrent())
                 return false;
 
             room->removePlayerMark(player, "Global_PreventPeach");
-        }
-        else if (triggerEvent == QuitDying)
-        {
+        } else if (triggerEvent == QuitDying) {
             if (player == room->getCurrent())
                 return false;
 

@@ -1123,6 +1123,7 @@ const Card *GuhuoCard::validate(CardUseStruct &card_use) const
                     log.arg2 = use_card->objectName();
                     room->sendLog(log);
 
+                    room->notifySkillInvoked(to, skill->objectName());
                     to->broadcastSkillInvoke(skill->objectName());
                 }
                 card_use.to.removeOne(to);

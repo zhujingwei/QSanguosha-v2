@@ -582,7 +582,7 @@ private:
     bool _askForNullification(const Card *trick, ServerPlayer *from, ServerPlayer *to, bool positive, _NullificationAiHelper helper);
     void _setupChooseGeneralRequestArgs(ServerPlayer *player);
 
-private slots:
+    private slots:
     void reportDisconnection();
     void processClientPacket(const QString &packet);
     void assignRoles();

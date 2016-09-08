@@ -404,63 +404,6 @@ public:
     }
 };
 
-class Yicong : public DistanceSkill
-{
-public:
-    Yicong() : DistanceSkill("yicong")
-    {
-    }
-
-    int getCorrect(const Player *from, const Player *to) const
-    {
-        int correct = 0;
-        if (from->hasSkill(this) && from->getHp() > 2)
-            correct--;
-        if (to->hasSkill(this) && to->getHp() <= 2)
-            correct++;
-
-        return correct;
-    }
-};
-
-class YicongEffect : public TriggerSkill
-{
-public:
-    YicongEffect() : TriggerSkill("#yicong-effect")
-    {
-        events << HpChanged;
-    }
-
-    bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
-    {
-        int hp = player->getHp();
-        int index = 0;
-        int reduce = 0;
-        if (data.canConvert<RecoverStruct>()) {
-            int rec = data.value<RecoverStruct>().recover;
-            if (hp > 2 && hp - rec <= 2)
-                index = 1;
-        } else {
-            if (data.canConvert<DamageStruct>()) {
-                DamageStruct damage = data.value<DamageStruct>();
-                reduce = damage.damage;
-            } else if (!data.isNull()) {
-                reduce = data.toInt();
-            }
-            if (hp <= 2 && hp + reduce > 2)
-                index = 2;
-        }
-
-        if (index > 0) {
-            if (player->getGeneralName() == "gongsunzan"
-                || (player->getGeneralName() != "st_gongsunzan" && player->getGeneral2Name() == "gongsunzan"))
-                index += 2;
-            room->broadcastSkillInvoke("yicong", index);
-        }
-        return false;
-    }
-};
-
 YuanhuCard::YuanhuCard()
 {
     mute = true;
@@ -2931,9 +2874,7 @@ SPPackage::SPPackage()
     related_skills.insertMulti("jilei", "#jilei-clear");
 
     General *gongsunzan = new General(this, "gongsunzan", "qun"); // SP 003
-    gongsunzan->addSkill(new Yicong);
-    gongsunzan->addSkill(new YicongEffect);
-    related_skills.insertMulti("yicong", "#yicong-effect");
+    gongsunzan->addSkill("yicong");
 
     General *yuanshu = new General(this, "yuanshu", "qun"); // SP 004
     yuanshu->addSkill(new Yongsi);
@@ -2988,6 +2929,8 @@ SPPackage::SPPackage()
     General *erqiao = new General(this, "erqiao", "wu", 3, false); // SP 021
     erqiao->addSkill(new Xingwu);
     erqiao->addSkill(new Luoyan);
+    erqiao->addRelateSkill("tianxiang");
+    erqiao->addRelateSkill("liuli");
 
     General *sp_yuejin = new General(this, "sp_yuejin", "wei", 4, true); // SP 024
     sp_yuejin->addSkill("xiaoguo");
@@ -3024,6 +2967,7 @@ SPPackage::SPPackage()
     General *zhugedan = new General(this, "zhugedan", "wei", 4); // SP 032
     zhugedan->addSkill(new Gongao);
     zhugedan->addSkill(new Juyi);
+    zhugedan->addRelateSkill("benghuai");
     zhugedan->addRelateSkill("weizhong");
 
     General *sp_hetaihou = new General(this, "sp_hetaihou", "qun", 3, false); // SP 033
