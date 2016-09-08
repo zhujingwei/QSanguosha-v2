@@ -139,7 +139,7 @@ void MagatamasBoxItem::_doHpChangeAnimation(int newHp)
         aniMaga->setParentItem(this);
         aniMaga->setOffset(QPoint(-(width - m_imageArea.left()) / 2, -(height - m_imageArea.top()) / 2));
 
-        int pos = m_maxHp > 5 ? 0 : i;
+        int pos = m_maxHp > 5 ? 0 : (m_maxHp - qMin(i, 0) - 1);
         aniMaga->setPos(QPoint(xStep * pos - aniMaga->offset().x(), yStep * pos - aniMaga->offset().y()));
 
         QPropertyAnimation *fade = new QPropertyAnimation(aniMaga, "opacity");
@@ -188,16 +188,18 @@ void MagatamasBoxItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     }
 
     if (m_maxHp <= 5) {
-        int i;
-        for (i = 0; i < m_hp; i++) {
-            QRect rect(xStep * i, yStep * i, m_imageArea.width(), m_imageArea.height());
-            rect.translate(m_imageArea.topLeft());
-            painter->drawPixmap(rect, _icons[imageIndex]);
-        }
-        for (; i < m_maxHp; i++) {
-            QRect rect(xStep * i, yStep * i, m_imageArea.width(), m_imageArea.height());
+        int i = m_maxHp;
+        for (; i > qMax(m_hp, 0); i--)
+        {
+            QRect rect(xStep * (m_maxHp - i), yStep * (m_maxHp - i), m_imageArea.width(), m_imageArea.height());
             rect.translate(m_imageArea.topLeft());
             painter->drawPixmap(rect, _icons[0]);
+        }
+        for (; i > 0; i--)
+        {
+            QRect rect(xStep * (m_maxHp - i), yStep * (m_maxHp - i), m_imageArea.width(), m_imageArea.height());
+            rect.translate(m_imageArea.topLeft());
+            painter->drawPixmap(rect, _icons[imageIndex]);
         }
     } else {
         painter->drawPixmap(m_imageArea, _icons[imageIndex]);
