@@ -356,22 +356,8 @@ bool GameRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *play
         while (dying.who->getHp() <= 0) {
             peach = NULL;
 
-            // coupling Wansha here to deal with complicated rule problems
-            ServerPlayer *current = room->getCurrent();
-            if (current && current->isAlive() && current->getPhase() != Player::NotActive && current->hasSkill("wansha")) {
-                if (player != current && player != dying.who) {
-                    player->setFlags("wansha");
-                    room->addPlayerMark(player, "Global_PreventPeach");
-                }
-            }
-
             if (dying.who->isAlive())
                 peach = room->askForSinglePeach(player, dying.who);
-
-            if (player->hasFlag("wansha") && player->getMark("Global_PreventPeach") > 0) {
-                player->setFlags("-wansha");
-                room->removePlayerMark(player, "Global_PreventPeach");
-            }
 
             if (peach == NULL)
                 break;
@@ -1510,7 +1496,7 @@ bool BasaraMode::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *pl
                     log.arg2 = ces.card != NULL ? ces.card->objectName() : "";
                     room->sendLog(log);
 
-                    room->broadcastSkillInvoke(prohibit->objectName());
+                    ces.to->broadcastSkillInvoke(prohibit->objectName());
                     room->notifySkillInvoked(ces.to, prohibit->objectName());
                 }
 

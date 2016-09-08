@@ -363,6 +363,7 @@ public:
     QString askForGeneral(ServerPlayer *player, const QStringList &generals, QString default_choice = QString());
     QString askForGeneral(ServerPlayer *player, const QString &generals, QString default_choice = QString());
     const Card *askForSinglePeach(ServerPlayer *player, ServerPlayer *dying);
+    const bool Room::shouldAskForPeach(ServerPlayer *player, ServerPlayer *dying) const;
     void addPlayerHistory(ServerPlayer *player, const QString &key, int times = 1);
 
     void toggleReadyCommand(ServerPlayer *player, const QVariant &);

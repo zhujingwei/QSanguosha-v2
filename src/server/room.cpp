@@ -1127,12 +1127,12 @@ bool Room::_askForNullification(const Card *trick, ServerPlayer *from, ServerPla
         foreach (ServerPlayer *player, validAiPlayers) {
             AI *ai = player->getAI();
             if (ai == NULL) continue;
-            thread->delay();
             card = ai->askForNullification(aiHelper.m_trick, aiHelper.m_from, aiHelper.m_to, positive);
             if (card && player->isCardLimited(card, Card::MethodUse))
                 card = NULL;
             if (card != NULL) {
                 repliedPlayer = player;
+                thread->delay();
                 break;
             }
         }
@@ -1619,6 +1619,9 @@ const Card *Room::askForCardShow(ServerPlayer *player, ServerPlayer *requestor, 
 
 const Card *Room::askForSinglePeach(ServerPlayer *player, ServerPlayer *dying)
 {
+    if (!shouldAskForPeach(player, dying))
+        return NULL;
+
     tryPause();
     notifyMoveFocus(player, S_COMMAND_ASK_PEACH);
     _m_roomState.setCurrentCardUseReason(CardUseStruct::CARD_USE_REASON_RESPONSE_USE);
@@ -1662,6 +1665,32 @@ const Card *Room::askForSinglePeach(ServerPlayer *player, ServerPlayer *dying)
     } else
         result = askForSinglePeach(player, dying);
     return result;
+}
+
+const bool Room::shouldAskForPeach(ServerPlayer *player, ServerPlayer *dying) const
+{
+    QStringList pattern;
+    pattern << "peach";
+    if (dying == player)
+        pattern << "analeptic";
+
+    if (player->getMark("Global_PreventPeach") > 0) {
+        bool has_skill = false;
+        foreach(const Skill *skill, player->getVisibleSkillList(true)) {
+            const ViewAsSkill *view_as_skill = ViewAsSkill::parseViewAsSkill(skill);
+            if (view_as_skill && view_as_skill->isAvailable(player, CardUseStruct::CARD_USE_REASON_RESPONSE_USE, pattern.join("+"))) {
+                has_skill = true;
+                break;
+            }
+        }
+        if (!has_skill) {
+            pattern.removeOne("peach");
+            if (pattern.isEmpty()) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 void Room::addPlayerHistory(ServerPlayer *player, const QString &key, int times)
