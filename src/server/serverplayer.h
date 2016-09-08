@@ -31,7 +31,7 @@ public:
     Room *getRoom() const;
     void broadcastSkillInvoke(const Card *card) const;
     void broadcastSkillInvoke(const QString &name, int type = -1, int start_index = 1) const;
-    int getSkillIndex(const QString &name, int start_index) const;
+    int getSkillIndex(const QString &name, int start_index = 1) const;
     int getRandomHandCardId() const;
     const Card *getRandomHandCard() const;
     void obtainCard(const Card *card, bool unhide = true);
@@ -171,6 +171,10 @@ public:
     {
         _m_clientResponse = val;
     }
+    inline void setFakeHandCardNum(int num)
+    {
+        fakeHandCardNum = num;
+    }
     unsigned int m_expectedReplySerial; // Suggest the acceptable serial number of an expected response.
     bool m_isClientResponseReady; //Suggest whether a valid player's reponse has been received.
     bool m_isWaitingReply; // Suggest if the server player is waiting for client's response.
@@ -189,6 +193,7 @@ protected:
 private:
     ClientSocket *socket;
     QList<const Card *> handcards;
+    int fakeHandCardNum = -1;
     Room *room;
     AI *ai;
     AI *trust_ai;

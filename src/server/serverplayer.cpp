@@ -49,20 +49,18 @@ Room *ServerPlayer::getRoom() const
     return room;
 }
 
- void ServerPlayer::broadcastSkillInvoke(const QString &name, int type, int start_index) const
- {
-     if (Sanguosha->getSkill(name) != NULL)
-     {
-         if (type == -1)
-             type = getSkillIndex(name, start_index);
+void ServerPlayer::broadcastSkillInvoke(const QString &name, int type, int start_index) const
+{
+    if (Sanguosha->getSkill(name) != NULL) {
+        if (type == -1)
+            type = getSkillIndex(name, start_index);
 
-         QString &skill_name = QString(name);
-         const QString general_name = Player::getSkillSource(skill_name);
-         room->broadcastSkillInvoke(skill_name, general_name, type);
-     }
-     else
-         room->broadcastSkillInvoke(name, isMale(), -1);
- }
+        QString &skill_name = QString(name);
+        const QString general_name = Player::getSkillSource(skill_name);
+        room->broadcastSkillInvoke(skill_name, general_name, type);
+    } else
+        room->broadcastSkillInvoke(name, isMale(), -1);
+}
 
 void ServerPlayer::broadcastSkillInvoke(const Card *card) const
 {
@@ -89,8 +87,11 @@ void ServerPlayer::broadcastSkillInvoke(const Card *card) const
                 broadcastSkillInvoke(card->objectName());
             else
                 room->broadcastSkillInvoke(card->getCommonEffectName(), "common");
-        } else
+        } else {
+            if (index == -1)
+                index = getSkillIndex(real_skill_name);
             room->broadcastSkillInvoke(real_skill_name, general_name, index);
+        }
     }
 }
 
@@ -98,15 +99,13 @@ int ServerPlayer::getSkillIndex(const QString &name, int start_index) const
 {
     QString key = objectName() + "-" + name + "-" + start_index;
     int type;
-    if (room->getTag(key) != QVariant())
-    {
+    if (room->getTag(key) != QVariant()) {
         type = room->getTag(key).toInt();
         if (type == start_index)
             type++;
         else
             type = start_index;
-    }
-    else
+    } else
         type = qrand() % 2 + start_index;
     room->setTag(key, type);
     return type;
@@ -264,6 +263,9 @@ int ServerPlayer::aliveCount() const
 
 int ServerPlayer::getHandcardNum() const
 {
+    if (fakeHandCardNum >= 0)
+        return fakeHandCardNum;
+
     return handcards.length();
 }
 
@@ -1310,7 +1312,7 @@ void ServerPlayer::gainAnExtraTurn()
         room->setCurrent(this);
         room->getThread()->trigger(TurnStart, room, this);
         room->setCurrent(current);
-    }
+    } 
     catch (TriggerEvent triggerEvent) {
         if (triggerEvent == TurnBroken) {
             if (getPhase() != Player::NotActive) {
