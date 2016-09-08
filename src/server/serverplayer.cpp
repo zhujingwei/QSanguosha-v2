@@ -49,10 +49,13 @@ Room *ServerPlayer::getRoom() const
     return room;
 }
 
- void ServerPlayer::broadcastSkillInvoke(const QString &name, int type) const
+ void ServerPlayer::broadcastSkillInvoke(const QString &name, int type, int start_index) const
  {
      if (Sanguosha->getSkill(name) != NULL)
      {
+         if (type == -1)
+             type = getSkillIndex(name, start_index);
+
          QString &skill_name = QString(name);
          const QString general_name = Player::getSkillSource(skill_name);
          room->broadcastSkillInvoke(skill_name, general_name, type);
@@ -89,6 +92,24 @@ void ServerPlayer::broadcastSkillInvoke(const Card *card) const
         } else
             room->broadcastSkillInvoke(real_skill_name, general_name, index);
     }
+}
+
+int ServerPlayer::getSkillIndex(const QString &name, int start_index) const
+{
+    QString key = objectName() + "-" + name + "-" + start_index;
+    int type;
+    if (room->getTag(key) != QVariant())
+    {
+        type = room->getTag(key).toInt();
+        if (type == start_index)
+            type++;
+        else
+            type = start_index;
+    }
+    else
+        type = qrand() % 2 + start_index;
+    room->setTag(key, type);
+    return type;
 }
 
 int ServerPlayer::getRandomHandCardId() const
