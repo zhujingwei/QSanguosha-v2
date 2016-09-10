@@ -48,6 +48,7 @@ config = {
 		"YJCM2013",
 		"YJCM2014",
 		"YJCM2015",
+        "YJCM2016",
 		"Assassins",
 		"Special3v3",
 		"Special3v3Ext",
@@ -300,7 +301,7 @@ config = {
 	bossmode_endless_skills = {
 		"bossguimei", "bossdidong", "nosenyuan", "bossshanbeng+bossbeiming+huilei+bossmingbao",
 		"bossluolei", "bossguihuo", "bossbaolian", "mengjin", "bossmanjia+bazhen",
-		"bossxiaoshou", "bossguiji", "fankui", "bosslianyu", "nosjuece",
+		"bossxiaoshou", "bossguiji", "fankui", "bosslianyu", "juece",
 		"bosstaiping+shenwei", "bosssuoming", "bossxixing", "bossqiangzheng",
 		"bosszuijiu", "bossmodao", "bossqushou", "yizhong", "kuanggu",
 		"bossmojian", "bossdanshu", "shenji", "wushuang", "wansha"

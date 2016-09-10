@@ -531,6 +531,14 @@ function SmartAI:useCardSlash(card, use)
 	if #targets == 0 and #forbidden > 0 then targets = forbidden end
 
 	if #targets == 1 and card:getSkillName() == "lihuo" and not targets[1]:hasArmorEffect("vine") then return end
+    
+    -- 按伤害大小排序
+    local function comps(a, b)
+        local before_damage = self:hasHeavySlashDamage(self.player, card, a, true)
+        local after_damage = self:hasHeavySlashDamage(self.player, card, b, true)
+        return before_damage > after_damage
+    end
+    table.sort(targets, comps)
 
 	for _, target in ipairs(targets) do
 		if self.player:hasSkill("chixin") then

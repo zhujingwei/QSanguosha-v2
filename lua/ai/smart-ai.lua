@@ -127,7 +127,7 @@ function setInitialTables()
     sgs.double_slash_skill = "paoxiao|fuhun|tianyi|xianzhen|zhaxiang|lihuo|jiangchi|shuangxiong|qiangwu|luanji"
     sgs.need_maxhp_skill = "yingzi|zaiqi|yinghun|hunzi|juejing|ganlu|zishou|miji|chizhong|xueji"..
                         "|quji|xuehen|shude|neojushou|tannang|fangzhu|nosshangshi|nosmiji"
-    sgs.bad_skills = "benghuai|wumou|shiyong|yaowu|zaoyao|chanyuan|chouhai"
+    sgs.bad_skills = "benghuai|wumou|shiyong|yaowu|zaoyao|chanyuan|chouhai|lianhuo"
 
     sgs.Friend_All = 0
     sgs.Friend_Draw = 1
@@ -622,6 +622,8 @@ function SmartAI:getUseValue(card)
             and (card:isKindOf("GuhuoCard") or card:getSuit() == sgs.Card_Heart) then usevalue = usevalue + 3 end
         return usevalue
     end
+    
+    if self.player:hasSkill("zhanjue") then v = v + 9 end
 
     if card:getTypeId() == sgs.Card_TypeEquip then
         if self.player:hasEquip(card) then
@@ -3388,6 +3390,7 @@ function SmartAI:hasHeavySlashDamage(from, slash, to, getValue)
 
     if not from:hasSkill("jueqing") then
         if from:hasSkill("anjian") and not to:inMyAttackRange(from) then dmg = dmg + 1 end
+        if to:hasSkill("lianhuo") and fireSlash and to:isChained() then dmg = dmg + 1 end
 
         local guanyu = self.room:findPlayerBySkillName("zhongyi")
         if guanyu and guanyu:getPile("loyal"):length() > 0 and self:isFriend(guanyu, from) then dmg = dmg + 1 end
@@ -3897,11 +3900,11 @@ function SmartAI:ableToSave(saver, dying)
     local current = self.room:getCurrent()
     if current and current:getPhase() ~= sgs.Player_NotActive and current:hasSkill("wansha")
         and current:objectName() ~= saver:objectName() and current:objectName() ~= dying:objectName()
-        and not saver:hasSkills("jiuzhu|chunlao|nosjiefan|renxin") then
+        and not saver:hasSkills("jiuzhu|chunlao|nosjiefan|nosrenxin") then
         return false
     end
     local peach = sgs.Sanguosha:cloneCard("peach", sgs.Card_NoSuitRed, 0)
-    if saver:isCardLimited(peach, sgs.Card_MethodUse, true) and not saver:hasSkills("jiuzhu|chunlao|nosjiefan|renxin") then return false end
+    if saver:isCardLimited(peach, sgs.Card_MethodUse, true) and not saver:hasSkills("jiuzhu|chunlao|nosjiefan|nosrenxin") then return false end
     return true
 end
 
@@ -6512,6 +6515,9 @@ function SmartAI:findPlayerToDamage(damage, source, nature, targets, include_sel
                     count = count + 1
                 end
                 if target:getMark("@gale") > 0 then
+                    count = count + 1
+                end
+                if target:hasSkill("lianhuo") and target:isChained() then
                     count = count + 1
                 end
             end

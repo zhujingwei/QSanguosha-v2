@@ -319,7 +319,9 @@ end
 function SmartAI:isGoodChainPartner(player)
 	player = player or self.player
 	if hasBuquEffect(player) or (self.player:hasSkill("niepan") and self.player:getMark("@nirvana") > 0) or self:needToLoseHp(player)
-		or self:getDamagedEffects(player) or (player:hasSkill("fuli") and player:getMark("@laoji") > 0) then
+		or self:getDamagedEffects(player) or (player:hasSkill("fuli") and player:getMark("@laoji") > 0)
+        or player:hasSkill("lianhuo")
+        then
 		return true
 	end
 	return false
@@ -339,6 +341,7 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, card)
 		damagecount = self:hasHeavySlashDamage(source, card, who, true)
 	elseif nature == sgs.DamageStruct_Fire then
 		if who:hasArmorEffect("vine") then damagecount = damagecount + 1 end
+        if who:hasSkill("lianhuo") then damagecount = damagecount + 1 end
 		if who:getMark("@gale") > 0 and self.room:findPlayerBySkillName("kuangfeng") then damagecount = damagecount + 1 end
 	end
 

@@ -345,8 +345,17 @@ zhanjue_skill.getTurnUseCard = function(self)
 end
 
 
--- qinwang buhui!!!
-
+sgs.ai_skill_cardask["@qinwang-discard"]=function(self)
+    local cards = sgs.QList2Table(self.player:getHandcards())
+    for _,card in ipairs(cards) do
+        if isCard("Slash", card, self.player) then
+            return "."
+        end
+    end
+    table.insert(cards, sgs.QList2Table(self.player:getEquips()))
+    local to_discard = self:askForDiscard("dummyreason", 1, 1, false, true)
+    if #to_discard > 0 then return "$" .. to_discard[1] end
+end
 
 
 
@@ -942,6 +951,7 @@ sgs.ai_skill_playerchosen.zuoding = function(self, targets)
     if #l == 0 then return nil end
 
     self:sort(l, "defense")
+    sgs.updateIntention(self.player, l[#l], -80)
     return l[#l]
 end
 
@@ -1056,4 +1066,15 @@ sgs.ai_skill_use["@@yaoming"] = function(self, prompt)
     end
     
     return "."
+end
+
+sgs.ai_card_intention.YaomingCard = function(self, card, from, tos)
+	local to = tos[1]
+	local intention = 0
+	if to:getHandcardNum() < self.player:getHandcardNum() then
+		intention = -50
+	else
+		intention = 50
+	end
+	sgs.updateIntention(from, to, intention)
 end
