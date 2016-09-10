@@ -578,7 +578,7 @@ public:
 
 QinwangCard::QinwangCard()
 {
-
+    mute = true;
 }
 
 bool QinwangCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
@@ -590,6 +590,7 @@ bool QinwangCard::targetFilter(const QList<const Player *> &targets, const Playe
 
 const Card *QinwangCard::validate(CardUseStruct &cardUse) const
 {
+    cardUse.from->broadcastSkillInvoke("qinwang");
     cardUse.from->getRoom()->throwCard(cardUse.card, cardUse.from);
 
     JijiangCard jj;
@@ -622,7 +623,7 @@ public:
     bool isEnabledAtPlay(const Player *player) const
     {
         JijiangViewAsSkill jj;
-        return jj.isEnabledAtPlay(player);
+        return jj.isEnabledAtPlay(player) && !player->isNude();
     }
 
     bool isEnabledAtResponse(const Player *player, const QString &pattern) const
@@ -650,7 +651,7 @@ public:
 
     bool triggerable(const ServerPlayer *target) const
     {
-        return target != NULL && target->hasLordSkill("qinwang");
+        return target != NULL && target->hasLordSkill("qinwang") && !target->isNude();
     }
 
     bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
@@ -671,6 +672,7 @@ public:
         if (!room->askForCard(player, "..", "@qinwang-discard", data, "qinwang"))
             return false;
 
+        player->broadcastSkillInvoke(objectName());
         player->setFlags("qinwangjijiang");
         try {
             bool t = jj->trigger(triggerEvent, room, player, data);
@@ -678,8 +680,7 @@ public:
                 player->setFlags("-qinwangjijiang");
 
             return t;
-        }
-        catch (TriggerEvent e) {
+        } catch (TriggerEvent e) {
             if (e == TurnBroken || e == StageChange)
                 player->setFlags("-qinwangjijiang");
 

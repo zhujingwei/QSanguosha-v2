@@ -20,6 +20,8 @@ class RendeCard : public SkillCard
 public:
     Q_INVOKABLE RendeCard();
     void use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targets) const;
+    bool targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const;
+    void useBasics(Room *room, ServerPlayer *player) const;
 };
 
 class YijueCard : public SkillCard

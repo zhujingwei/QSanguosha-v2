@@ -221,7 +221,8 @@ void Settings::init()
 
     QStringList exp_skills = GetConfigFromLuaState(lua, "bossmode_exp_skills").toStringList();
     QMap<QString, int> exp_skill_map;
-    foreach (QString skill, exp_skills) {
+    foreach(QString skill, exp_skills)
+    {
         QString name = skill.split(":").first();
         int cost = skill.split(":").last().toInt();
         exp_skill_map.insert(name, cost);

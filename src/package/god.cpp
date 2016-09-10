@@ -271,14 +271,6 @@ public:
     {
         return !player->hasUsed("GongxinCard");
     }
-
-    int getEffectIndex(const ServerPlayer *player, const Card *) const
-    {
-        int index = qrand() % 2 + 1;
-        if (!player->hasInnateSkill(this) && player->getMark("qinxue") > 0)
-            index += 2;
-        return index;
-    }
 };
 
 void YeyanCard::damage(ServerPlayer *shenzhouyu, ServerPlayer *target, int point) const

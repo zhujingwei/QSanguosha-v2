@@ -459,7 +459,7 @@ public:
                     log.from = target;
                     log.to << handang;
                     room->sendLog(log);
-                } else if (handang->hasFlag("Global_PreventPeach")) {
+                } else if (handang->getMark("Global_PreventPeach") > 0) {
                     LogMessage log;
                     log.type = "#NosJiefanNull3";
                     log.from = current;
@@ -2219,7 +2219,7 @@ public:
     bool isEnabledAtResponse(const Player *player, const QString &pattern) const
     {
         if (player->isKongcheng() || pattern.startsWith(".") || pattern.startsWith("@")) return false;
-        if (pattern == "peach" && player->hasFlag("Global_PreventPeach")) return false;
+        if (pattern == "peach" && player->getMark("Global_PreventPeach") > 0) return false;
         for (int i = 0; i < pattern.length(); i++) {
             QChar ch = pattern[i];
             if (ch.isUpper() || ch.isDigit()) return false; // This is an extremely dirty hack!! For we need to prevent patterns like 'BasicCard'
@@ -2408,7 +2408,7 @@ public:
     {
         SlashEffectStruct effect = data.value<SlashEffectStruct>();
         if (effect.slash->isBlack()) {
-            room->broadcastSkillInvoke(objectName());
+            player->broadcastSkillInvoke(objectName());
             room->notifySkillInvoked(player, objectName());
 
             LogMessage log;

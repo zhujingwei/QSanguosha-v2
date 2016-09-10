@@ -122,13 +122,14 @@ public:
 
     QString findConvertFrom(const QString &general_name) const;
     bool isGeneralHidden(const QString &general_name) const;
-    void exportSkillList() const;
+    QList<QString> getRandomSkills(int num) const;
 
 private:
     void _loadMiniScenarios();
     void _loadModScenarios();
     void godLottery(QStringList &) const;
-	void godLottery(QSet<QString> &) const;
+    void godLottery(QSet<QString> &) const;
+    void exportSkillList() const;
 
     QMutex m_mutex;
     QHash<QString, QString> translations;

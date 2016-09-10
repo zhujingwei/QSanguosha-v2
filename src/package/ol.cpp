@@ -1640,114 +1640,6 @@ public:
     }
 };
 
-OlRendeCard::OlRendeCard() {
-    mute = true;
-    will_throw = false;
-    handling_method = Card::MethodNone;
-}
-
-bool OlRendeCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const {
-    QStringList rende_prop = Self->property("olrende").toString().split("+");
-    if (rende_prop.contains(to_select->objectName()))
-        return false;
-
-    return targets.isEmpty() && to_select != Self;
-}
-
-void OlRendeCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targets) const {
-    ServerPlayer *target = targets.first();
-
-    QDateTime dtbefore = source->tag.value("olrende", QDateTime(QDate::currentDate(), QTime(0, 0, 0))).toDateTime();
-    QDateTime dtafter = QDateTime::currentDateTime();
-
-    if (dtbefore.secsTo(dtafter) > 3 * Config.AIDelay / 1000)
-        room->broadcastSkillInvoke("rende");
-
-    source->tag["olrende"] = QDateTime::currentDateTime();
-
-    CardMoveReason reason(CardMoveReason::S_REASON_GIVE, source->objectName(), target->objectName(), "olrende", QString());
-    room->obtainCard(target, this, reason, false);
-
-    int old_value = source->getMark("olrende");
-    int new_value = old_value + subcards.length();
-    room->setPlayerMark(source, "olrende", new_value);
-
-    if (old_value < 2 && new_value >= 2)
-        room->recover(source, RecoverStruct(source));
-
-    QSet<QString> rende_prop = source->property("olrende").toString().split("+").toSet();
-    rende_prop.insert(target->objectName());
-    room->setPlayerProperty(source, "olrende", QStringList(rende_prop.toList()).join("+"));
-}
-
-class OlRendeVS : public ViewAsSkill
-{
-public:
-    OlRendeVS() : ViewAsSkill("olrende") {
-    }
-
-    bool viewFilter(const QList<const Card *> &selected, const Card *to_select) const {
-        if (ServerInfo.GameMode == "04_1v3" && selected.length() + Self->getMark("olrende") >= 2)
-            return false;
-        else
-            return !to_select->isEquipped();
-    }
-
-    bool isEnabledAtPlay(const Player *player) const {
-        if (ServerInfo.GameMode == "04_1v3" && player->getMark("olrende") >= 2)
-            return false;
-
-        bool f = false;
-        QStringList rende_prop = player->property("olrende").toString().split("+");
-        foreach(const Player *p, player->getAliveSiblings()) {
-            if (p == player)
-                continue;
-
-            if (!rende_prop.contains(p->objectName())) {
-                f = true;
-                break;
-            }
-        }
-
-        if (!f)
-            return false;
-
-        return !player->isKongcheng();
-    }
-
-    const Card *viewAs(const QList<const Card *> &cards) const {
-        if (cards.isEmpty())
-            return NULL;
-
-        OlRendeCard *rende_card = new OlRendeCard;
-        rende_card->addSubcards(cards);
-        return rende_card;
-    }
-};
-
-class OlRende : public TriggerSkill
-{
-public:
-    OlRende() : TriggerSkill("olrende") {
-        events << EventPhaseChanging;
-        view_as_skill = new OlRendeVS;
-    }
-
-    bool triggerable(const ServerPlayer *target) const {
-        return target != NULL && target->getMark("olrende") > 0;
-    }
-
-    bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &data) const {
-        PhaseChangeStruct change = data.value<PhaseChangeStruct>();
-        if (change.to != Player::NotActive)
-            return false;
-        room->setPlayerMark(player, "olrende", 0);
-
-        room->setPlayerProperty(player, "olrende", QVariant());
-        return false;
-    }
-};
-
 OlAnxuCard::OlAnxuCard() {
     mute = true;
     will_throw = true;
@@ -2079,7 +1971,6 @@ OLPackage::OLPackage()
     addMetaObject<ZhanyiViewAsBasicCard>();
     addMetaObject<MidaoCard>();
     addMetaObject<BushiCard>();
-    addMetaObject<OlRendeCard>();
     addMetaObject<OlAnxuCard>();
 
     skills << new OldMoshi;

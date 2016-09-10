@@ -19,7 +19,7 @@ public:
     void setPath(const QString &path);
     bool valid();
 
-    void start(bool permanent = true, int interval = 50);
+    void start(bool permanent = true, int interval = 30);
     void stop();
 
     static PixmapAnimation *GetPixmapAnimation(QGraphicsItem *parent, const QString & emotion);

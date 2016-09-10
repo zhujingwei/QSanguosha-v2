@@ -114,6 +114,7 @@ bool GameRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *play
     // Handle global events
     if (player == NULL) {
         if (triggerEvent == GameStart) {
+            Sanguosha->playSystemAudioEffect("gamestart");
             if (room->getMode() == "04_boss") {
                 int difficulty = Config.value("BossModeDifficulty", 0).toInt();
                 if ((difficulty & (1 << GameRule::BMDIncMaxHp)) > 0) {
@@ -831,6 +832,12 @@ void GameRule::changeGeneralBossMode(ServerPlayer *player) const
         player->changePhase(player->getPhase(), Player::NotActive);
 
     room->revivePlayer(player);
+    QStringList detach_skills;
+    foreach (const Skill *skill, player->getVisibleSkillList())
+    {
+        detach_skills << "-" + skill->objectName();
+    }
+    room->handleAcquireDetachSkills(player, detach_skills.join("|"), objectName());
     room->changeHero(player, general, true, true);
     room->setPlayerMark(player, "BossMode_Boss", 1);
     int actualmaxhp = player->getMaxHp();
@@ -998,9 +1005,9 @@ void GameRule::doBossModeDifficultySettings(ServerPlayer *lord) const
                         acquired.removeOne(a);
                 }
                 int len = qMin(4, acquired.length() + 1);
-                foreach(QString skillname, Config.BossExpSkills.keys())
+                foreach(QString skillname, Sanguosha->getRandomSkills(40))//Config.BossExpSkills.keys())
                 {
-                    int cost = Config.BossExpSkills[skillname] * len;
+                    int cost = (qrand() % 100 + 1) * len;//Config.BossExpSkills[skillname] * len;
                     allchoices << QString("[%1]||%2").arg(cost).arg(skillname);
                     if (p->hasSkill(skillname, true)) continue;
                     if (exp >= cost)

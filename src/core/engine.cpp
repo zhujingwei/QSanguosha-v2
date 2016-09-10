@@ -741,6 +741,24 @@ bool Engine::isGeneralHidden(const QString &general_name) const
         || extra_hidden_generals.contains(general_name);
 }
 
+QList<QString> Engine::getRandomSkills(int num) const
+{
+    QList<QString> ret_skills;
+    foreach(const General *general, Sanguosha->getAllGenerals())
+    {
+        if (ret_skills.count() < num) {
+            QList<const Skill *> skills = general->getVisibleSkillList();
+            const Skill *randSkill = skills.at(qrand() % skills.count());
+            if (randSkill->isLordSkill() || randSkill->getFrequency() == Skill::Wake || randSkill->getFrequency() == Skill::Limited)
+                continue;
+
+            if (!ret_skills.contains(randSkill->objectName()))
+                ret_skills << randSkill->objectName();
+        }
+    }
+    return ret_skills;
+}
+
 void Engine::exportSkillList() const
 {
     QFile file("general-skill.txt");

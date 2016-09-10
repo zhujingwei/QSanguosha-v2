@@ -431,7 +431,7 @@ public:
                     return false;
 
                 player->broadcastSkillInvoke(objectName());
-                player->addToPile("qingjian", c);
+                player->addToPile("qingjian", c, false);
                 ServerPlayer *current = room->getCurrent();
                 if (!(current == NULL || current->isDead() || current->getPhase() == Player::NotActive))
                     player->setFlags("qingjian");
@@ -724,47 +724,61 @@ public:
     }
 };
 
-class RendeViewAsSkill : public ViewAsSkill
+class RendeVS : public ViewAsSkill
 {
 public:
-    RendeViewAsSkill() : ViewAsSkill("rende")
+    RendeVS() : ViewAsSkill("rende")
     {
+        response_pattern = "@@rende";
     }
 
-    bool viewFilter(const QList<const Card *> &selected, const Card *to_select) const
+    bool viewFilter(const QList<const Card *> &, const Card *to_select) const
     {
-        if (ServerInfo.GameMode == "04_1v3" && selected.length() + Self->getMark("rende") >= 2)
+        if (Sanguosha->getCurrentCardUsePattern() == response_pattern)
             return false;
-        else {
-            if (to_select->isEquipped()) return false;
-            if (Sanguosha->currentRoomState()->getCurrentCardUsePattern() == "@@rende") {
-                QList<int> rende_list = StringList2IntList(Self->property("rende").toString().split("+"));
-                return rende_list.contains(to_select->getEffectiveId());
-            } else
-                return true;
-        }
+        return !to_select->isEquipped();
     }
 
     bool isEnabledAtPlay(const Player *player) const
     {
-        if (ServerInfo.GameMode == "04_1v3" && player->getMark("rende") >= 2)
-            return false;
-        return !player->hasUsed("RendeCard") && !player->isKongcheng();
-    }
+        bool f = false;
+        QStringList rende_prop = player->property("rende").toString().split("+");
+        foreach(const Player *p, player->getAliveSiblings())
+        {
+            if (p == player)
+                continue;
 
-    bool isEnabledAtResponse(const Player *, const QString &pattern) const
-    {
-        return pattern == "@@rende";
+            if (!rende_prop.contains(p->objectName())) {
+                f = true;
+                break;
+            }
+        }
+
+        if (!f)
+            return false;
+
+        return !player->isKongcheng();
     }
 
     const Card *viewAs(const QList<const Card *> &cards) const
     {
-        if (cards.isEmpty())
-            return NULL;
+        if (Sanguosha->getCurrentCardUsePattern() == response_pattern) {
+            if (cards.isEmpty()) {
+                QString name = Self->property("rende-basic").toString();
+                Card *card = Sanguosha->cloneCard(name, Card::NoSuit, 0);
+                card->setSkillName("_rende");
+                return card;
+            }
+        } else {
+            if (cards.isEmpty())
+                return NULL;
 
-        RendeCard *rende_card = new RendeCard;
-        rende_card->addSubcards(cards);
-        return rende_card;
+            RendeCard *rende_card = new RendeCard;
+            rende_card->addSubcards(cards);
+            return rende_card;
+        }
+
+        return NULL;
     }
 };
 
@@ -774,7 +788,7 @@ public:
     Rende() : TriggerSkill("rende")
     {
         events << EventPhaseChanging;
-        view_as_skill = new RendeViewAsSkill;
+        view_as_skill = new RendeVS;
     }
 
     bool triggerable(const ServerPlayer *target) const
@@ -788,8 +802,14 @@ public:
         if (change.to != Player::NotActive)
             return false;
         room->setPlayerMark(player, "rende", 0);
-        room->setPlayerProperty(player, "rende", QString());
+
+        room->setPlayerProperty(player, "rende", QVariant());
         return false;
+    }
+
+    int getEffectIndex(const ServerPlayer *, const Card *card) const
+    {
+        return (card->isKindOf("RendeCard") ? -1 : -2);
     }
 };
 
@@ -848,13 +868,13 @@ public:
         if (lieges.isEmpty())
             return false;
 
-
         if (!liubei->hasFlag("qinwangjijiang") && !room->askForSkillInvoke(liubei, objectName(), data))
             return false;
 
         liubei->broadcastSkillInvoke(objectName());
 
-        foreach (ServerPlayer *liege, lieges) {
+        foreach(ServerPlayer *liege, lieges)
+        {
             const Card *slash = room->askForCard(liege, "slash", "@jijiang-slash:" + liubei->objectName(),
                 QVariant(), Card::MethodResponse, liubei, false, QString(), true);
             if (slash) {
@@ -1975,7 +1995,7 @@ public:
 
     int getEffectIndex(const ServerPlayer *, const Card *card) const
     {
-        return (card->isKindOf("Indulgence") ? 1 : 2);
+        return (card->isKindOf("Indulgence") ? 2 : 1);
     }
 };
 
@@ -2396,7 +2416,7 @@ public:
 
     bool isEnabledAtResponse(const Player *player, const QString &pattern) const
     {
-        return pattern.contains("peach") && !player->hasFlag("Global_PreventPeach")
+        return pattern.contains("peach") && !(player->getMark("Global_PreventPeach") > 0)
             && player->getPhase() == Player::NotActive && player->canDiscard(player, "he");
     }
 

@@ -8,6 +8,7 @@
 #include "util.h"
 #include "wrapped-card.h"
 #include "roomthread.h"
+#include "settings.h"
 
 ZhihengCard::ZhihengCard()
 {
@@ -22,48 +23,62 @@ void ZhihengCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &)
 
 RendeCard::RendeCard()
 {
+    mute = true;
     will_throw = false;
     handling_method = Card::MethodNone;
-    mute = true;
+}
+
+bool RendeCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
+{
+    QStringList rende_prop = Self->property("rende").toString().split("+");
+    if (rende_prop.contains(to_select->objectName()))
+        return false;
+
+    return targets.isEmpty() && to_select != Self;
 }
 
 void RendeCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targets) const
 {
-
-    if (!source->tag.value("rende_using", false).toBool())
-        source->broadcastSkillInvoke("rende");
-
     ServerPlayer *target = targets.first();
-
-    int old_value = source->getMark("rende");
-    QList<int> rende_list;
-    if (old_value > 0)
-        rende_list = StringList2IntList(source->property("rende").toString().split("+"));
-    else
-        rende_list = source->handCards();
-    foreach(int id, this->subcards)
-        rende_list.removeOne(id);
-    room->setPlayerProperty(source, "rende", IntList2StringList(rende_list).join("+"));
+    source->broadcastSkillInvoke("rende");
 
     CardMoveReason reason(CardMoveReason::S_REASON_GIVE, source->objectName(), target->objectName(), "rende", QString());
     room->obtainCard(target, this, reason, false);
 
+    int old_value = source->getMark("rende");
     int new_value = old_value + subcards.length();
     room->setPlayerMark(source, "rende", new_value);
 
     if (old_value < 2 && new_value >= 2)
-        room->recover(source, RecoverStruct(source));
+        useBasics(room, source);
 
-    if (room->getMode() == "04_1v3" && source->getMark("rende") >= 2) return;
-    if (source->isKongcheng() || source->isDead() || rende_list.isEmpty()) return;
-    room->addPlayerHistory(source, "RendeCard", -1);
+    QSet<QString> rende_prop = source->property("rende").toString().split("+").toSet();
+    rende_prop.insert(target->objectName());
+    room->setPlayerProperty(source, "rende", QStringList(rende_prop.toList()).join("+"));
+}
 
-    source->tag["rende_using"] = true;
+void RendeCard::useBasics(Room *room, ServerPlayer *player) const
+{
+    QStringList choices;
+    choices << "slash";
+    if (!Sanguosha->getBanPackages().contains("Maneuvering"))
+        choices << "fire_slash" << "thunder_slash" << "analeptic";
+    choices << "peach";
+    foreach (QString pattern, choices)
+    {
+        Card *card = Sanguosha->cloneCard(pattern, Card::NoSuit);
+        if (!card->isAvailable(player))
+            choices.removeOne(pattern);
+    }
+    choices << "cancel";
 
-    if (!room->askForUseCard(source, "@@rende", "@rende-give", -1, Card::MethodNone))
-        room->addPlayerHistory(source, "RendeCard");
-
-    source->tag["rende_using"] = false;
+    QString choice = room->askForChoice(player, "rende-basic", choices.join("+"));
+    if (choice != "cancel") {
+        room->setPlayerProperty(player, "rende-basic", choice);
+        QString prompt = QString("@rende-basic:%1:%2:%3").arg(player->objectName()).arg(QString()).arg(choice);
+        room->askForUseCard(player, "@@rende", prompt);
+        room->setPlayerProperty(player, "rende-basic", QVariant());
+    }
 }
 
 YijueCard::YijueCard()

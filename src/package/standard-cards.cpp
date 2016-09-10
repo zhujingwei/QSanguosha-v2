@@ -1271,6 +1271,7 @@ Lightning::Lightning(Suit suit, int number) :Disaster(suit, number)
 
 void Lightning::takeEffect(ServerPlayer *target) const
 {
+    Sanguosha->playSystemAudioEffect("lightning");
     target->getRoom()->damage(DamageStruct(this, NULL, target, 3, DamageStruct::Thunder));
 }
 
