@@ -40,3 +40,23 @@ end
 
 sgs.ai_use_priority.JisheCard = 8
 sgs.ai_use_value.JisheCard = 8
+
+
+sgs.ai_skill_choice.jiaozhao = function(self, choices, data)
+    local source = data:toPlayer()
+    local choices_table = choices:split("+")
+    local choice
+    if self:isEnemy(source) then
+        if table.contains(choices_table, "analeptic") then
+            return "analeptic"
+        else
+            return "jink"
+        end
+    else
+        local forbids = {"peach", "analeptic", "jink", "exnihilo"}
+        repeat
+            choice = choices_table[math.random(1, #choices_table)]
+        until not forbids.contains(choice)
+    end
+    return choice
+end

@@ -1714,6 +1714,7 @@ void RoomScene::chooseOption(const QString &skillName, const QStringList &option
         if (cancel_button)
             layout->addWidget(cancel_button);
     } else {
+        QHBoxLayout *hlayout = new QHBoxLayout;
         foreach (QString option, options) {
             QCommandLinkButton *button = new QCommandLinkButton;
             QString text = QString("%1:%2").arg(skillName).arg(option);
@@ -1735,8 +1736,14 @@ void RoomScene::chooseOption(const QString &skillName, const QStringList &option
             connect(button, SIGNAL(clicked()), dialog, SLOT(accept()));
             connect(button, SIGNAL(clicked()), ClientInstance, SLOT(onPlayerMakeChoice()));
 
-            layout->addWidget(button);
+            hlayout->addWidget(button);
+            if (hlayout->count() >= 5) {
+                layout->addLayout(hlayout);
+                hlayout = new QHBoxLayout;
+            }
         }
+        if (hlayout->count() > 0)
+            layout->addLayout(hlayout);
     }
 
     dialog->setObjectName("cancel");
@@ -2262,6 +2269,7 @@ void RoomScene::useSelectedCard()
     case Client::Playing: {
         const Card *card = dashboard->getSelected();
         if (card) useCard(card);
+        dashboard->unselectAll();
         break;
     }
     case Client::Responding: {
