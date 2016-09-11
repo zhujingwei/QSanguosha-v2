@@ -862,6 +862,10 @@ sgs.ai_skill_use_func.RendeCard = function(card, use, self)
 
 	local notFound
 	for i = 1, #cards do
+        if #cards_togive > 2 then
+            break
+        end
+        
         local card, friend
         repeat
             card, friend = self:getCardNeedPlayer(cards)
@@ -984,11 +988,20 @@ sgs.ai_skill_choice["rende-basic"] = function(self, choices)
         
         
     if table.contains(choice_table, "analeptic") and sgs.Analeptic_IsAvailable(self.player) and canJijiang(self) then
-        local anal = sgs.Sanguosha:cloneCard("analeptic")
-        anal:deleteLater()
-        local value = sgs.ai_use_value["Analeptic"] or 0
-        local val = { name = "analeptic", use_value = value }
-        table.insert(cards_value, val)
+        local hasSlashTarget
+        for _,enemy in ipairs(self.enemies) do
+            if self.player:canSlash(enemy) then
+                hasSlashTarget = true
+                break
+            end
+        end
+        if hasSlashTarget then
+            local anal = sgs.Sanguosha:cloneCard("analeptic")
+            anal:deleteLater()
+            local value = sgs.ai_use_value["Analeptic"] or 0
+            local val = { name = "analeptic", use_value = value }
+            table.insert(cards_value, val)
+        end
     end
     local Set = function(list)
         local set = {}

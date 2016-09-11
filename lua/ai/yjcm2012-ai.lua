@@ -1,29 +1,4 @@
-sgs.ai_skill_invoke.qianxi = function(self, data)
-    if self.player:hasFlag("AI_doNotInvoke_qianxi") then
-        self.player:setFlags("-AI_doNotInvoke_qianxi")
-        return
-    end
-    if self.player:getPile("incantation"):length() > 0 then
-        local card = sgs.Sanguosha:getCard(self.player:getPile("incantation"):first())
-        if not self.player:getJudgingArea():isEmpty() and not self.player:containsTrick("YanxiaoCard") and not self:hasWizard(self.enemies, true) then
-            local trick = self.player:getJudgingArea():last()
-            if trick:isKindOf("Indulgence") then
-                if card:getSuit() == sgs.Card_Heart or (self.player:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade) then return false end
-            elseif trick:isKindOf("SupplyShortage") then
-                if card:getSuit() == sgs.Card_Club then return false end
-            end
-        end
-        local zhangbao = self.room:findPlayerBySkillName("yingbing")
-        if zhangbao and self:isEnemy(zhangbao) and not zhangbao:hasSkill("manjuan")
-            and (card:isRed() or (self.player:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade)) then return false end
-    end
-    for _, p in ipairs(self.enemies) do
-        if self.player:distanceTo(p) == 1 and not p:isKongcheng() then
-            return true
-        end
-    end
-    return false
-end
+sgs.ai_skill_invoke.qianxi = true
 
 sgs.ai_skill_playerchosen.qianxi = function(self, targets)
     local enemies = {}
@@ -74,7 +49,6 @@ end
 
 sgs.ai_skill_invoke.zishou = function(self, data)
     if self:needBear() then return true end
-    if self.player:isSkipped(sgs.Player_Play) then return true end
 
     local chance_value = 1
     local peach_num = self:getCardsNum("Peach")
@@ -111,22 +85,23 @@ fuhun_skill.getTurnUseCard = function(self, inclusive)
     return turnUse_spear(self, inclusive, "fuhun")
 end
 
-function sgs.ai_skill_invoke.zhenlie(self, data)
-    local use = data:toCardUse()
-    if not use.from or use.from:isDead() then return false end
+sgs.ai_skill_use["@@zhenlie"] = function(self, prompt)
+    local use = self.player:getTag("zhenlie-info"):toCardUse()
+    local should_invoke
+    if not use.from or use.from:isDead() then return "." end
     if self.role == "rebel" and sgs.evaluatePlayerRole(use.from) == "rebel" and not use.from:hasSkill("jueqing")
-        and self.player:getHp() == 1 and self:getAllPeachNum() < 1 then return false end
+        and self.player:getHp() == 1 and self:getAllPeachNum() < 1 then return "." end
 
     if self:isEnemy(use.from) or (self:isFriend(use.from) and self.role == "loyalist" and not use.from:hasSkill("jueqing") and use.from:isLord() and self.player:getHp() == 1) then
         if use.card:isKindOf("Slash") then
-            if not self:slashIsEffective(use.card, self.player, use.from) then return false end
-            if self:hasHeavySlashDamage(use.from, use.card, self.player) then return true end
+            if not self:slashIsEffective(use.card, self.player, use.from) then return "." end
+            if self:hasHeavySlashDamage(use.from, use.card, self.player) then return "@ZhenlieCard=." end
 
             local jink_num = self:getExpectedJinkNum(use)
-            local hasHeart = false
+            local hasHeart = "."
             for _, card in ipairs(self:getCards("Jink")) do
                 if card:getSuit() == sgs.Card_Heart then
-                    hasHeart = true
+                    hasHeart = "@ZhenlieCard=."
                     break
                 end
             end
@@ -135,12 +110,12 @@ function sgs.ai_skill_invoke.zhenlie(self, data)
                 or self:getCardsNum("Jink") < jink_num
                 or (use.from:hasSkill("dahe") and self.player:hasFlag("dahe") and not hasHeart) then
 
-                if use.card:isKindOf("NatureSlash") and self.player:isChained() and not self:isGoodChainTarget(self.player, use.from, nil, nil, use.card) then return true end
-                if use.from:hasSkill("nosqianxi") and use.from:distanceTo(self.player) == 1 then return true end
-                if self:isFriend(use.from) and self.role == "loyalist" and not use.from:hasSkill("jueqing") and use.from:isLord() and self.player:getHp() == 1 then return true end
+                if use.card:isKindOf("NatureSlash") and self.player:isChained() and not self:isGoodChainTarget(self.player, use.from, nil, nil, use.card) then return "@ZhenlieCard=." end
+                if use.from:hasSkill("nosqianxi") and use.from:distanceTo(self.player) == 1 then return "@ZhenlieCard=." end
+                if self:isFriend(use.from) and self.role == "loyalist" and not use.from:hasSkill("jueqing") and use.from:isLord() and self.player:getHp() == 1 then return "@ZhenlieCard=." end
                 if (not (self:hasSkills(sgs.masochism_skill) or (self.player:hasSkill("tianxiang") and getKnownCard(self.player, self.player, "heart") > 0)) or use.from:hasSkill("jueqing"))
                     and not self:doNotDiscard(use.from) then
-                    return true
+                    return "@ZhenlieCard=."
                 end
             end
         elseif use.card:isKindOf("AOE") then
@@ -158,45 +133,67 @@ function sgs.ai_skill_invoke.zhenlie(self, data)
             friend_null = friend_null + self:getCardsNum("Nullification")
             local sj_num = self:getCardsNum(use.card:isKindOf("SavageAssault") and "Slash" or "Jink")
 
-            if not self:hasTrickEffective(use.card, self.player, from) then return false end
-            if not self:damageIsEffective(self.player, sgs.DamageStruct_Normal, from) then return false end
-            if use.from:hasSkill("drwushuang") and self.player:getCardCount() == 1 and self:hasLoseHandcardEffective() then return true end
+            if not self:hasTrickEffective(use.card, self.player, from) then return "." end
+            if not self:damageIsEffective(self.player, sgs.DamageStruct_Normal, from) then return "." end
+            if use.from:hasSkill("drwushuang") and self.player:getCardCount() == 1 and self:hasLoseHandcardEffective() then return "@ZhenlieCard=." end
             if sj_num == 0 and friend_null <= 0 then
-                if self:isEnemy(from) and from:hasSkill("jueqing") then return not self:doNotDiscard(from) end
-                if self:isFriend(from) and self.role == "loyalist" and from:isLord() and self.player:getHp() == 1 and not from:hasSkill("jueqing") then return true end
+                if self:isEnemy(from) and from:hasSkill("jueqing") then 
+                    if self:doNotDiscard(from) then
+                        return "."
+                    else
+                        return "@ZhenlieCard=."
+                    end
+                end
+                if self:isFriend(from) and self.role == "loyalist" and from:isLord() and self.player:getHp() == 1 and not from:hasSkill("jueqing") then return "@ZhenlieCard=." end
                 if (not (self:hasSkills(sgs.masochism_skill) or (self.player:hasSkill("tianxiang") and getKnownCard(self.player, self.player, "heart") > 0)) or use.from:hasSkill("jueqing"))
                     and not self:doNotDiscard(use.from) then
-                    return true
+                    return "@ZhenlieCard=."
                 end
             end
         elseif self:isEnemy(use.from) then
             if use.card:isKindOf("FireAttack") and use.from:getHandcardNum() > 0 then
-                    if not self:hasTrickEffective(use.card, self.player) then return false end
-                if not self:damageIsEffective(self.player, sgs.DamageStruct_Fire, use.from) then return false end
+                    if not self:hasTrickEffective(use.card, self.player) then return "." end
+                if not self:damageIsEffective(self.player, sgs.DamageStruct_Fire, use.from) then return "." end
                 if (self.player:hasArmorEffect("vine") or self.player:getMark("@gale") > 0) and use.from:getHandcardNum() > 3
                     and not (use.from:hasSkill("hongyan") and getKnownCard(self.player, self.player, "spade") > 0) then
-                    return not self:doNotDiscard(use.from)
+                    if self:doNotDiscard(from) then
+                        return "."
+                    else
+                        return "@ZhenlieCard=."
+                    end
                 elseif self.player:isChained() and not self:isGoodChainTarget(self.player, use.from) then
-                    return not self:doNotDiscard(use.from)
+                    if self:doNotDiscard(from) then
+                        return "."
+                    else
+                        return "@ZhenlieCard=."
+                    end
                 end
             elseif (use.card:isKindOf("Snatch") or use.card:isKindOf("Dismantlement"))
                     and self:getCardsNum("Peach") == self.player:getHandcardNum() and not self.player:isKongcheng() then
-                if not self:hasTrickEffective(use.card, self.player) then return false end
-                return not self:doNotDiscard(use.from)
+                if not self:hasTrickEffective(use.card, self.player) then return "." end
+                if self:doNotDiscard(from) then
+                    return "."
+                else
+                    return "@ZhenlieCard=."
+                end
             elseif use.card:isKindOf("Duel") then
                 if self:getCardsNum("Slash") == 0 or self:getCardsNum("Slash") < getCardsNum("Slash", use.from, self.player) then
-                    if not self:hasTrickEffective(use.card, self.player) then return false end
-                    if not self:damageIsEffective(self.player, sgs.DamageStruct_Normal, use.from) then return false end
-                    return not self:doNotDiscard(use.from)
+                    if not self:hasTrickEffective(use.card, self.player) then return "." end
+                    if not self:damageIsEffective(self.player, sgs.DamageStruct_Normal, use.from) then return "." end
+                    if self:doNotDiscard(from) then
+                        return "."
+                    else
+                        return "@ZhenlieCard=."
+                    end
                 end
             elseif use.card:isKindOf("TrickCard") and not use.card:isKindOf("AmazingGrace") then
                 if not self:doNotDiscard(use.from) and self:needToLoseHp(self.player) then
-                    return true
+                    return "@ZhenlieCard=."
                 end
             end
         end
     end
-    return false
+    return "."
 end
 
 sgs.ai_skill_choice.miji_draw = function(self, choices)
@@ -204,16 +201,17 @@ sgs.ai_skill_choice.miji_draw = function(self, choices)
 end
 
 sgs.ai_skill_invoke.miji = function(self, data)
-    if #self.friends_noself == 0 then return false end
-    for _, friend in ipairs(self.friends_noself) do
+    if #self.friends == 0 then return false end
+    for _, friend in ipairs(self.friends) do
         if not friend:hasSkill("manjuan") and not self:isLihunTarget(friend) then return true end
     end
     return false
 end
 
 sgs.ai_skill_askforyiji.miji = function(self, card_ids)
+    
     local available_friends = {}
-    for _, friend in ipairs(self.friends_noself) do
+    for _, friend in ipairs(self.friends) do
         if not friend:hasSkill("manjuan") and not self:isLihunTarget(friend) then table.insert(available_friends, friend) end
     end
 
@@ -229,22 +227,39 @@ sgs.ai_skill_askforyiji.miji = function(self, card_ids)
         table.insert(allcards, card)
     end
 
+    
+    
     local cards = #toGive > 0 and toGive or allcards
     self:sortByKeepValue(cards, true)
     local id = cards[1]:getId()
 
-    local card, friend = self:getCardNeedPlayer(cards)
-    if card and friend and table.contains(available_friends, friend) then return friend, card:getId() end
+    local card, friend = self:getCardNeedPlayer(cards, true)
+    if card and friend and table.contains(available_friends, friend) then 
+        if friend:objectName() == self.player:objectName() then 
+            return nil, -1
+        else
+            return friend, card:getId() 
+        end
+    end
 
+    
     if #available_friends > 0 then
         self:sort(available_friends, "handcard")
         for _, afriend in ipairs(available_friends) do
             if not self:needKongcheng(afriend, true) then
-                return afriend, id
+                if afriend:objectName() == self.player:objectName() then 
+                    return nil, -1
+                else
+                    return afriend, id
+                end
             end
         end
         self:sort(available_friends, "defense")
-        return available_friends[1], id
+        if available_friends[1]:objectName() == self.player:objectName() then 
+            return nil, -1
+        else
+            return available_friends[1], id
+        end
     end
     return nil, -1
 end

@@ -742,6 +742,7 @@ function SmartAI:adjustUsePriority(card, v)
                 end
             end
             v = v - 0.05
+            if self.player:hasSkill("zhaxiang") and self.player:getMark("zhaxiang") > 0 then v = v + 1 end
         end
         if card:isKindOf("NatureSlash") then
             if self.slashAvail == 1 then
@@ -3591,7 +3592,7 @@ function SmartAI:getCardNeedPlayer(cards, include_self)
     if (self.player:hasSkill("nosrende") and self.player:isWounded() and self.player:getMark("nosrende") < 2) then
         if (self.player:getHandcardNum() < 2 and self.player:getMark("nosrende") == 0) then return end
     end
-    if (self.player:hasSkill("rende") and not self.player:hasUsed("RendeCard") and self.player:isWounded() and self.player:getMark("rende") < 2) then
+    if (self.player:hasSkill("rende") and self.player:isWounded() and self.player:getMark("rende") < 2) then
         if (self.player:getHandcardNum() < 2 and self.player:getMark("rende") == 0) then return end
 
         if ((self.player:getHandcardNum() == 2 and self.player:getMark("rende") == 0) or
@@ -4131,13 +4132,6 @@ function SmartAI:getTurnUse()
     for _, id in sgs.qlist(self.player:getPile("wooden_ox")) do
         local c = sgs.Sanguosha:getCard(id)
         if c:isAvailable(self.player) then table.insert(cards, c) end
-    end
-    if self.player:hasSkill("taoxi") and self.player:hasFlag("TaoxiRecord") then
-        local taoxi_id = self.player:getTag("TaoxiId"):toInt()
-        if taoxi_id and taoxi_id >= 0 then
-            local taoxi_card = sgs.Sanguosha:getCard(taoxi_id)
-            table.insert(cards, taoxi_card)
-        end
     end
 
     local turnUse = {}
