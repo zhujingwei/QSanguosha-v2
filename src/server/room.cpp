@@ -1600,16 +1600,12 @@ const Card *Room::askForCardShow(ServerPlayer *player, ServerPlayer *requestor, 
     if (ai)
         card = ai->askForCardShow(requestor, reason);
     else {
-        if (player->getHandcardNum() == 1)
-            card = player->getHandcards().first();
-        else {
-            bool success = doRequest(player, S_COMMAND_SHOW_CARD, requestor->getGeneralName(), true);
-            JsonArray clientReply = player->getClientReply().value<JsonArray>();
-            if (success && clientReply.size() > 0 && JsonUtils::isString(clientReply[0]))
-                card = Card::Parse(clientReply[0].toString());
-            if (card == NULL)
-                card = player->getRandomHandCard();
-        }
+        bool success = doRequest(player, S_COMMAND_SHOW_CARD, requestor->getGeneralName(), true);
+        JsonArray clientReply = player->getClientReply().value<JsonArray>();
+        if (success && clientReply.size() > 0 && JsonUtils::isString(clientReply[0]))
+            card = Card::Parse(clientReply[0].toString());
+        if (card == NULL)
+            card = player->getRandomHandCard();
     }
 
     QVariant decisionData = QVariant::fromValue("cardShow:" + reason + ":_" + card->toString() + "_");
@@ -3919,7 +3915,7 @@ void Room::drawCards(QList<ServerPlayer *> players, QList<int> n_list, const QSt
     moveCardsAtomic(moves, false);
 }
 
-void Room::throwCard(const Card *card, ServerPlayer *who, ServerPlayer *thrower)
+void Room::throwCard(const Card *card, ServerPlayer *who, ServerPlayer *thrower, bool do_notify)
 {
     CardMoveReason reason;
     if (thrower == NULL) {
@@ -3931,13 +3927,15 @@ void Room::throwCard(const Card *card, ServerPlayer *who, ServerPlayer *thrower)
         reason.m_playerId = thrower->objectName();
     }
     reason.m_skillName = card->getSkillName();
-    throwCard(card, reason, who, thrower);
+    throwCard(card, reason, who, thrower, do_notify);
 }
 
-void Room::throwCard(const Card *card, const CardMoveReason &reason, ServerPlayer *who, ServerPlayer *thrower)
+void Room::throwCard(const Card *card, const CardMoveReason &reason, ServerPlayer *who, ServerPlayer *thrower, bool do_notify)
 {
     if (card == NULL)
         return;
+    if (do_notify)
+        doIndicate(thrower, who);
 
     QList<int> to_discard;
     if (card->isVirtualCard())
@@ -3973,9 +3971,9 @@ void Room::throwCard(const Card *card, const CardMoveReason &reason, ServerPlaye
     }
 }
 
-void Room::throwCard(int card_id, ServerPlayer *who, ServerPlayer *thrower)
+void Room::throwCard(int card_id, ServerPlayer *who, ServerPlayer *thrower, bool do_notify)
 {
-    throwCard(Sanguosha->getCard(card_id), who, thrower);
+    throwCard(Sanguosha->getCard(card_id), who, thrower, do_notify);
 }
 
 RoomThread *Room::getThread() const
@@ -6017,4 +6015,9 @@ int Room::getBossModeExpMult(int level) const
         lua_pop(L, 1);
     }
     return res;
+}
+
+void Room::doIndicate(ServerPlayer *from, ServerPlayer *to)
+{
+    doAnimate(S_ANIMATE_INDICATE, from->objectName(), to->objectName());
 }

@@ -319,6 +319,7 @@ public:
             for (int i = 0; i < damage.damage; i++) {
                 if (room->askForSkillInvoke(xiahou, "ganglie", data)) {
                     xiahou->broadcastSkillInvoke(objectName());
+                    room->doIndicate(xiahou, from);
 
                     JudgeStruct judge;
                     judge.pattern = ".";
@@ -474,6 +475,7 @@ public:
             QVariant data = QVariant::fromValue(from);
             if (from && !from->isNude() && room->askForSkillInvoke(simayi, "fankui", data)) {
                 simayi->broadcastSkillInvoke(objectName());
+                room->doIndicate(simayi, from);
                 int card_id = room->askForCardChosen(simayi, from, "he", "fankui");
                 CardMoveReason reason(CardMoveReason::S_REASON_EXTRACTION, simayi->objectName());
                 room->obtainCard(simayi, Sanguosha->getCard(card_id),
@@ -2536,8 +2538,6 @@ public:
     bool onPhaseChange(ServerPlayer *target) const
     {
         Room *room = target->getRoom();
-        if (!isNormalGameMode(room->getMode()))
-            return false;
         if (target->isLord() && target->getPhase() == Player::Start) {
             ServerPlayer *yuanshu = room->findPlayerBySkillName(objectName());
             if (yuanshu && room->askForSkillInvoke(yuanshu, objectName())) {

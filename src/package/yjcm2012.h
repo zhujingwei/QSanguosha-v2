@@ -13,6 +13,18 @@ public:
     YJCM2012Package();
 };
 
+class ZhenlieCard : public SkillCard
+{
+    Q_OBJECT
+
+public:
+    Q_INVOKABLE ZhenlieCard();
+
+    bool targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const;
+    bool targetsFeasible(const QList<const Player *> &targets, const Player *Self) const;
+    void use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targets) const;
+};
+
 class QiceCard : public SkillCard
 {
     Q_OBJECT
