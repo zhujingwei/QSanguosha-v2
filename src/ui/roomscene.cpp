@@ -267,28 +267,9 @@ RoomScene::RoomScene(QMainWindow *main_window)
     log_box_widget->setParent(this);
     connect(ClientInstance, SIGNAL(log_received(QStringList)), log_box, SLOT(appendLog(QStringList)));
 
-    prompt_box = new Window(tr("QSanguosha"), QSize(480, 200));
-    prompt_box->setOpacity(0);
-    prompt_box->setFlag(QGraphicsItem::ItemIsMovable);
-    prompt_box->shift();
-    prompt_box->setZValue(10);
-    prompt_box->keepWhenDisappear();
-
-    prompt_box_widget = new QGraphicsTextItem(prompt_box);
-    prompt_box_widget->setParent(prompt_box);
-    prompt_box_widget->setPos(40, 45);
-    prompt_box_widget->setDefaultTextColor(Qt::white);
-
-    QTextDocument *prompt_doc = ClientInstance->getPromptDoc();
-    prompt_doc->setTextWidth(prompt_box->boundingRect().width() - 80);
-    prompt_box_widget->setDocument(prompt_doc);
-
-    QFont qf = Config.SmallFont;
-    qf.setPixelSize(21);
-    qf.setStyleStrategy(QFont::PreferAntialias);
-    prompt_box_widget->setFont(qf);
-
-    addItem(prompt_box);
+    prompt_box_widget = new PromptInfoItem();
+    addItem(prompt_box_widget);
+    prompt_box_widget->setDocument(ClientInstance->getPromptDoc());
 
     m_tableBg = new QGraphicsPixmapItem;
     m_tableBg->setZValue(-100000);
@@ -991,7 +972,15 @@ void RoomScene::updateTable()
     m_tablePile->adjustCards();
     card_container->setPos(m_tableCenterPos);
     guanxing_box->setPos(m_tableCenterPos);
-    prompt_box->setPos(m_tableCenterPos);
+    if (NULL != prompt_box_widget) {
+        QRectF promptBoxRect = prompt_box_widget->boundingRect();
+        int promptBoxWidth = promptBoxRect.width();
+        int promptBoxHeight = promptBoxRect.height();
+        QRectF progressBarRect = dashboard->getProgressBarSceneBoundingRect();
+        int xShift = (promptBoxWidth - progressBarRect.width()) / 2;
+        prompt_box_widget->setPos(progressBarRect.x() - xShift,
+            progressBarRect.y() - promptBoxHeight + G_COMMON_LAYOUT.m_promptInfoFont.spacing());
+    }
     pausing_text->setPos(m_tableCenterPos - pausing_text->boundingRect().center());
     pausing_item->setRect(sceneRect());
     pausing_item->setPos(0, 0);
@@ -1420,6 +1409,12 @@ void RoomScene::keyReleaseEvent(QKeyEvent *event)
             enableTargets(NULL);
         } else
             dashboard->unselectAll();
+
+        if (!prompt_box_widget->toPlainText().trimmed().isEmpty()
+            && !dashboard->isProgressBarVisible()
+            && !Config.OperationNoLimit && Config.OperationTimeout > 0) {
+            ClientInstance->getPromptDoc()->clear();
+        }
         break;
     }
     case Qt::Key_Space: {
@@ -2258,7 +2253,6 @@ void RoomScene::updateSkillButtons(bool isPrepare)
         addSkillButton(skill);
     }
 
-    // disable all skill buttons
     foreach(QSanSkillButton *button, m_skillButtons)
         button->setEnabled(false);
 }
@@ -2280,7 +2274,6 @@ void RoomScene::useSelectedCard()
                 selected_targets.clear();
             }
             ClientInstance->onPlayerResponseCard(card, selected_targets);
-            prompt_box->disappear();
         }
 
         dashboard->unselectAll();
@@ -2290,7 +2283,6 @@ void RoomScene::useSelectedCard()
         const Card *card = dashboard->getSelected();
         if (card) {
             ClientInstance->onPlayerResponseCard(card);
-            prompt_box->disappear();
         }
         dashboard->unselectAll();
         break;
@@ -2301,7 +2293,6 @@ void RoomScene::useSelectedCard()
         if (card) {
             ClientInstance->onPlayerDiscardCards(card);
             dashboard->stopPending();
-            prompt_box->disappear();
         }
         break;
     }
@@ -2320,7 +2311,6 @@ void RoomScene::useSelectedCard()
         return;
     }
     case Client::AskForSkillInvoke: {
-        prompt_box->disappear();
         QString skill_name = ClientInstance->getSkillNameToInvoke();
         dashboard->highlightEquip(skill_name, false);
         ClientInstance->onPlayerInvokeSkill(true);
@@ -2328,7 +2318,6 @@ void RoomScene::useSelectedCard()
     }
     case Client::AskForPlayerChoose: {
         ClientInstance->onPlayerChoosePlayer(selected_targets.first());
-        prompt_box->disappear();
         break;
     }
     case Client::AskForYiji: {
@@ -2336,7 +2325,6 @@ void RoomScene::useSelectedCard()
         if (card) {
             ClientInstance->onPlayerReplyYiji(card, selected_targets.first());
             dashboard->stopPending();
-            prompt_box->disappear();
         }
         break;
     }
@@ -2476,7 +2464,6 @@ void RoomScene::doTimeout()
     case Client::AskForPlayerChoose: {
         ClientInstance->onPlayerChoosePlayer(NULL);
         dashboard->stopPending();
-        prompt_box->disappear();
         break;
     }
     case Client::AskForAG: {
@@ -2493,7 +2480,6 @@ void RoomScene::doTimeout()
         if (cancel_button->isEnabled())
             cancel_button->click();
         else {
-            prompt_box->disappear();
             doCancelButton();
         }
         break;
@@ -2513,12 +2499,6 @@ void RoomScene::doTimeout()
     default:
         break;
     }
-}
-
-void RoomScene::showPromptBox()
-{
-    bringToFront(prompt_box);
-    prompt_box->appear();
 }
 
 void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
@@ -2560,7 +2540,6 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
             if (!card_container->retained())
                 card_container->clear();
         }
-        prompt_box->disappear();
         ClientInstance->getPromptDoc()->clear();
 
         dashboard->disableAllCards();
@@ -2578,7 +2557,6 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
         break;
     }
     case Client::Responding: {
-        showPromptBox();
 
         ok_button->setEnabled(false);
         cancel_button->setEnabled(ClientInstance->m_isDiscardActionRefusable);
@@ -2635,7 +2613,6 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
         break;
     }
     case Client::AskForShowOrPindian: {
-        showPromptBox();
 
         ok_button->setEnabled(false);
         cancel_button->setEnabled(false);
@@ -2657,7 +2634,6 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
     }
     case Client::Discarding:
     case Client::Exchanging: {
-        showPromptBox();
 
         ok_button->setEnabled(false);
         cancel_button->setEnabled(ClientInstance->m_isDiscardActionRefusable);
@@ -2701,14 +2677,12 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
             }
         }
 
-        showPromptBox();
         ok_button->setEnabled(true);
         cancel_button->setEnabled(true);
         discard_button->setEnabled(false);
         break;
     }
     case Client::AskForPlayerChoose: {
-        showPromptBox();
 
         ok_button->setEnabled(false);
         cancel_button->setEnabled(ClientInstance->m_isDiscardActionRefusable);
@@ -2741,7 +2715,6 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
         yiji_skill->setPlayerNames(yiji_info.last().split("+"));
         dashboard->startPending(yiji_skill);
 
-        showPromptBox();
 
         break;
     }
@@ -2878,14 +2851,12 @@ void RoomScene::doCancelButton()
         }
 
         ClientInstance->onPlayerResponseCard(NULL);
-        prompt_box->disappear();
         dashboard->stopPending();
         break;
     }
     case Client::AskForShowOrPindian: {
         dashboard->unselectAll();
         ClientInstance->onPlayerResponseCard(NULL);
-        prompt_box->disappear();
         dashboard->stopPending();
         break;
     }
@@ -2894,7 +2865,6 @@ void RoomScene::doCancelButton()
         dashboard->unselectAll();
         dashboard->stopPending();
         ClientInstance->onPlayerDiscardCards(NULL);
-        prompt_box->disappear();
         break;
     }
     case Client::ExecDialog: {
@@ -2905,19 +2875,16 @@ void RoomScene::doCancelButton()
         QString skill_name = ClientInstance->getSkillNameToInvoke();
         dashboard->highlightEquip(skill_name, false);
         ClientInstance->onPlayerInvokeSkill(false);
-        prompt_box->disappear();
         break;
     }
     case Client::AskForYiji: {
         dashboard->stopPending();
         ClientInstance->onPlayerReplyYiji(NULL, NULL);
-        prompt_box->disappear();
         break;
     }
     case Client::AskForPlayerChoose: {
         dashboard->stopPending();
         ClientInstance->onPlayerChoosePlayer(NULL);
-        prompt_box->disappear();
         break;
     }
     default:
@@ -4180,6 +4147,15 @@ void RoomScene::showIndicator(const QString &from, const QString &to)
     indicator->doAnimation();
 }
 
+void RoomScene::deletePromptInfoItem()
+{
+    if (NULL != prompt_box_widget) {
+        prompt_box_widget->hide();
+        delete prompt_box_widget;
+        prompt_box_widget = NULL;
+    }
+}
+
 void RoomScene::doIndicate(const QString &, const QStringList &args)
 {
     showIndicator(args.first(), args.last());
@@ -4865,4 +4841,41 @@ void RoomScene::recorderAutoSave()
         QDir().mkpath(path);
     QString filename=path+"/"+QDateTime::currentDateTime().toString("yyyy年MM月dd日HH时mm分ss秒")+".txt";
     ClientInstance->save(filename);
+}
+
+PromptInfoItem::PromptInfoItem(QGraphicsItem *parent/* = 0*/)
+    : QGraphicsTextItem(parent), m_font(G_COMMON_LAYOUT.m_promptInfoFont)
+{
+}
+
+QRectF PromptInfoItem::boundingRect() const
+{
+    return QRectF(0, 0, G_COMMON_LAYOUT.m_promptInfoSize.width(),
+        G_COMMON_LAYOUT.m_promptInfoSize.height());
+}
+
+void PromptInfoItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
+{
+    //过滤掉多余的前后空白字符
+    QString info = toPlainText();
+    if (!info.isEmpty()) {
+        QStringList plaintTexts = info.split("\n");
+        QStringList texts;
+        foreach(const QString &plainText, plaintTexts)
+        {
+            texts.append(plainText.trimmed());
+        }
+        QString text = texts.join("\n");
+
+        //经测试发现，ttf字体显示不出“红桃”、“黑桃”等这些图形符号，故将它们替换为相应的文字说明
+        text.replace(Sanguosha->translate("spade_char"), Sanguosha->translate("spade"));
+        text.replace(Sanguosha->translate("club_char"), Sanguosha->translate("club"));
+        text.replace(Sanguosha->translate("heart_char"), Sanguosha->translate("heart"));
+        text.replace(Sanguosha->translate("diamond_char"), Sanguosha->translate("diamond"));
+
+        if (!text.isEmpty()) {
+            m_font.paintText(painter, boundingRect().toRect(),
+                (Qt::AlignmentFlag)((int)Qt::AlignHCenter | Qt::AlignBottom | Qt::TextWrapAnywhere), text);
+        }
+    }
 }

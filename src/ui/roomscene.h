@@ -141,7 +141,7 @@ public:
     void changeTextEditBackground();
     void adjustItems();
     void showIndicator(const QString &from, const QString &to);
-    void showPromptBox();
+    void deletePromptInfoItem();
     static void FillPlayerNames(QComboBox *ComboBox, bool add_none);
     void updateTable();
     void updateVolumeConfig();
@@ -244,7 +244,6 @@ private:
     QSanButton *ok_button, *cancel_button, *discard_button;
     QSanButton *trust_button;
     QMenu *miscellaneous_menu, *change_general_menu;
-    Window *prompt_box;
     Window *pindian_box;
     CardItem *pindian_from_card, *pindian_to_card;
     QGraphicsItem *control_panel;
@@ -457,6 +456,18 @@ signals:
     void restart();
     void return_to_start();
     void game_over_dialog_rejected();
+};
+
+class PromptInfoItem : public QGraphicsTextItem
+{
+public:
+    explicit PromptInfoItem(QGraphicsItem *parent = 0);
+
+    virtual QRectF boundingRect() const;
+    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *);
+
+private:
+    const IQSanComponentSkin::QSanShadowTextFont &m_font;
 };
 
 extern RoomScene *RoomSceneInstance;

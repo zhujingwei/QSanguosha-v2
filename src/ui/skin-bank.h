@@ -27,6 +27,7 @@ public:
         // this function's prototype is confusing. It will CLEAR ALL contents on the
         // QGraphicsPixmapItem passed in and then start drawing.
         void paintText(QGraphicsPixmapItem *item, QRect pos, Qt::Alignment align, const QString &text) const;
+        inline int spacing() const { return m_spacing; }
 
     protected:
         static QHash<QString, int *> _m_fontBank;
@@ -239,6 +240,8 @@ public:
         QRect m_cardAvatarArea;
         QRect m_cardFrameArea;
         QSanShadowTextFont m_cardFootnoteFont;
+        QSize m_promptInfoSize;
+        QSanShadowTextFont m_promptInfoFont;
         QSanShadowTextFont m_hpFont[6];
         int m_hpExtraSpaceHolder;
 

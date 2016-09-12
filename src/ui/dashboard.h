@@ -49,6 +49,11 @@ public:
     void showControlButtons();
     virtual void showProgressBar(QSanProtocol::Countdown countdown);
 
+    QRectF getProgressBarSceneBoundingRect() const
+    {
+        return _m_progressBarItem->sceneBoundingRect();
+    }
+
     QSanSkillButton *removeSkillButton(const QString &skillName);
     QSanSkillButton *addSkillButton(const QString &skillName);
     bool isAvatarUnderMouse();

@@ -781,6 +781,9 @@ bool QSanRoomSkin::_loadLayoutConfig(const QVariant &layout)
         _m_commonLayout.m_bubbleChatBoxShowAreaSize);
     _m_commonLayout.m_cardFootnoteFont.tryParse(config["cardFootnoteFont"]);
 
+    tryParse(config["promptInfoSize"], _m_commonLayout.m_promptInfoSize);
+    _m_commonLayout.m_promptInfoFont.tryParse(config["promptInfoFont"]);
+
     JsonArray magatamaFont = config["magatamaFont"].value<JsonArray>();
     for (int i = 0; i < 6 && i < magatamaFont.size(); i++) {
         _m_commonLayout.m_hpFont[i].tryParse(magatamaFont[i]);

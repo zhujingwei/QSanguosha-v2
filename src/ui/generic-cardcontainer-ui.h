@@ -9,6 +9,7 @@
 #include "skin-bank.h"
 #include "util.h"
 #include "protocol.h"
+#include "timed-progressbar.h"
 //#include "rolecombobox.h"
 
 class CardItem;
@@ -63,6 +64,13 @@ public:
     PlayerCardContainer();
     virtual void showProgressBar(QSanProtocol::Countdown countdown);
     void hideProgressBar();
+    inline bool isProgressBarVisible() const
+    {
+        if (_m_progressBar != NULL) {
+            return _m_progressBar->isVisible();
+        }
+        return false;
+    }
     void hideAvatars();
     const ClientPlayer *getPlayer() const;
     void setPlayer(ClientPlayer *player);
