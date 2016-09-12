@@ -267,7 +267,7 @@ RoomScene::RoomScene(QMainWindow *main_window)
     log_box_widget->setParent(this);
     connect(ClientInstance, SIGNAL(log_received(QStringList)), log_box, SLOT(appendLog(QStringList)));
 
-    prompt_box_widget = new PromptInfoItem();
+    prompt_box_widget = new PromptInfoItem;
     addItem(prompt_box_widget);
     prompt_box_widget->setDocument(ClientInstance->getPromptDoc());
 
@@ -979,7 +979,7 @@ void RoomScene::updateTable()
         QRectF progressBarRect = dashboard->getProgressBarSceneBoundingRect();
         int xShift = (promptBoxWidth - progressBarRect.width()) / 2;
         prompt_box_widget->setPos(progressBarRect.x() - xShift,
-            progressBarRect.y() - promptBoxHeight + G_COMMON_LAYOUT.m_promptInfoFont.spacing());
+            progressBarRect.y() - progressBarRect.height() - promptBoxHeight + G_COMMON_LAYOUT.m_promptInfoFont.spacing());
     }
     pausing_text->setPos(m_tableCenterPos - pausing_text->boundingRect().center());
     pausing_item->setRect(sceneRect());
@@ -4860,22 +4860,16 @@ void PromptInfoItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, 
     QString info = toPlainText();
     if (!info.isEmpty()) {
         QStringList plaintTexts = info.split("\n");
-        QStringList texts;
-        foreach(const QString &plainText, plaintTexts)
-        {
-            texts.append(plainText.trimmed());
-        }
-        QString text = texts.join("\n");
-
-        //经测试发现，ttf字体显示不出“红桃”、“黑桃”等这些图形符号，故将它们替换为相应的文字说明
-        text.replace(Sanguosha->translate("spade_char"), Sanguosha->translate("spade"));
-        text.replace(Sanguosha->translate("club_char"), Sanguosha->translate("club"));
-        text.replace(Sanguosha->translate("heart_char"), Sanguosha->translate("heart"));
-        text.replace(Sanguosha->translate("diamond_char"), Sanguosha->translate("diamond"));
-
-        if (!text.isEmpty()) {
-            m_font.paintText(painter, boundingRect().toRect(),
-                (Qt::AlignmentFlag)((int)Qt::AlignHCenter | Qt::AlignBottom | Qt::TextWrapAnywhere), text);
+        int line = 0;
+        for (int i = plaintTexts.length() - 1; i >= 0; i--) {
+            QString text = plaintTexts.at(i);
+            if (!text.isEmpty()) {
+                QRect rect = boundingRect().toRect();
+                QRect new_rect = QRect(rect.x(), rect.y() - line * m_font.m_fontSize.height() - m_font.spacing(), rect.width(), rect.height());
+                m_font.paintText(painter, new_rect,
+                    (Qt::AlignmentFlag)((int)Qt::AlignHCenter | Qt::AlignBottom | Qt::TextWrapAnywhere), text);
+                line++;
+            }
         }
     }
 }
