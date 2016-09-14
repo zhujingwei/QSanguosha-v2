@@ -210,7 +210,7 @@ public:
             QString card_name = player->property("jiaozhao").toString();
             return card_name != QString();
         }
-        return true;
+        return !player->isKongcheng();
     }
 
     const Card *viewAs(const Card *originalCard) const
@@ -249,7 +249,7 @@ public:
         if (triggerEvent == CardUsed) {
             CardUseStruct use = data.value<CardUseStruct>();
             if (!use.card->getTypeId() == Card::TypeSkill && use.card->getSkillName() == objectName()) {
-                Self->setProperty("jiaozhao", QVariant());
+                room->setPlayerProperty(player, "jiaozhao", QVariant());
                 use.card->setFlags("-jiaozhao");
             }
         } else {
@@ -298,15 +298,17 @@ public:
 
             QStringList choices;
             choices << "draw";
-            if (Self->getMark("jiaozhao-self") == 0)
-                choices << "jiaozhao-self";
-            if (Self->getMark("jiaozhao-trick") == 0)
-                choices << "jiaozhao-trick";
+            if (target->hasSkill("jiaozhao")) {
+                if (target->getMark("jiaozhao-self") == 0)
+                    choices << "jiaozhao-self";
+                if (target->getMark("jiaozhao-trick") == 0)
+                    choices << "jiaozhao-trick";
+            }
             QString choice = target->getRoom()->askForChoice(target, objectName(), choices.join("+"));
             if (choice == "draw")
                 target->drawCards(1);
             else
-                Self->addMark(choice);
+                target->getRoom()->setPlayerMark(target, choice, 1);
         }
     }
 };

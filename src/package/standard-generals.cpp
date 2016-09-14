@@ -1060,7 +1060,7 @@ public:
                 room->removePlayerMark(player, "@substitute");
                 player->broadcastSkillInvoke(objectName());
                 //room->doLightbox("$TishenAnimate");
-                room->doSuperLightbox("zhangfei", "tishen");
+//                 room->doSuperLightbox("zhangfei", "tishen");
 
                 room->recover(player, RecoverStruct(player, NULL, x));
                 player->drawCards(x, objectName());
@@ -1508,7 +1508,7 @@ public:
         room->notifySkillInvoked(player, objectName());
         //room->doLightbox("$QianxinAnimate");
 
-        room->doSuperLightbox("st_xushu", "qianxin");
+//         room->doSuperLightbox("st_xushu", "qianxin");
 
         LogMessage log;
         log.type = "#QianxinWake";
@@ -1740,7 +1740,7 @@ public:
         lvmeng->broadcastSkillInvoke(objectName());
         room->notifySkillInvoked(lvmeng, objectName());
         //room->doLightbox("$QinxueAnimate");
-        room->doSuperLightbox("lvmeng", "qinxue");
+//         room->doSuperLightbox("lvmeng", "qinxue");
 
         LogMessage log;
         log.type = "#QinxueWake";
@@ -2088,7 +2088,7 @@ public:
 
     bool triggerable(const ServerPlayer *target) const
     {
-        return target != NULL;
+        return target != NULL && !target->isKongcheng();
     }
 
     bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *player, QVariant &data) const

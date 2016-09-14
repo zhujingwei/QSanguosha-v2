@@ -357,7 +357,7 @@ public:
 
         //room->doLightbox("$ZaoxianAnimate", 4000);
 
-        room->doSuperLightbox("dengai", "zaoxian");
+//         room->doSuperLightbox("dengai", "zaoxian");
 
         room->setPlayerMark(dengai, "zaoxian", 1);
         if (room->changeMaxHpForAwakenSkill(dengai) && dengai->getMark("zaoxian") == 1)
@@ -444,7 +444,7 @@ public:
 
         //room->doLightbox("$HunziAnimate", 5000);
 
-        room->doSuperLightbox("sunce", "hunzi");
+//         room->doSuperLightbox("sunce", "hunzi");
 
         room->setPlayerMark(sunce, "hunzi", 1);
         if (room->changeMaxHpForAwakenSkill(sunce) && sunce->getMark("hunzi") == 1)
@@ -663,7 +663,7 @@ public:
 
         //room->doLightbox("$ZhijiAnimate", 4000);
 
-        room->doSuperLightbox("jiangwei", "zhiji");
+//         room->doSuperLightbox("jiangwei", "zhiji");
 
         room->setPlayerMark(jiangwei, "zhiji", 1);
         if (room->changeMaxHpForAwakenSkill(jiangwei)) {
@@ -1053,7 +1053,7 @@ public:
             room->sendLog(log);
 
             liushan->broadcastSkillInvoke(objectName());
-            room->doSuperLightbox("liushan", "ruoyu");
+//             room->doSuperLightbox("liushan", "ruoyu");
 
             room->setPlayerMark(liushan, "ruoyu", 1);
             if (room->changeMaxHpForAwakenSkill(liushan, 1)) {

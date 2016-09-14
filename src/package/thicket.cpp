@@ -712,7 +712,7 @@ LuanwuCard::LuanwuCard()
 void LuanwuCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &) const
 {
     room->removePlayerMark(source, "@chaos");
-    room->doSuperLightbox("jiaxu", "luanwu");
+//     room->doSuperLightbox("jiaxu", "luanwu");
 
     QList<ServerPlayer *> players = room->getOtherPlayers(source);
     foreach (ServerPlayer *player, players) {

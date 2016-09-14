@@ -1010,11 +1010,17 @@ int Player::getSlashCount() const
         + history.value("FireSlash", 0);
 }
 
-void Player::clearHistory(const QString &name)
+void Player::clearHistory(const QString &name, const QString &except_name)
 {
-    if (name.isEmpty())
-        history.clear();
-    else
+    if (name.isEmpty()) {
+        if (except_name.isEmpty())
+            history.clear();
+        else {
+            int times = history[except_name];
+            history.clear();
+            history[except_name] = times;
+        }
+    } else
         history.remove(name);
 }
 

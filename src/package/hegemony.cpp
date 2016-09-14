@@ -498,7 +498,7 @@ void XiongyiCard::onUse(Room *room, const CardUseStruct &card_use) const
     room->removePlayerMark(use.from, "@arise");
     room->broadcastSkillInvoke("xiongyi");
     //room->doLightbox("$XiongyiAnimate", 4500);
-    room->doSuperLightbox("mateng", "xiongyi");
+//     room->doSuperLightbox("mateng", "xiongyi");
     SkillCard::onUse(room, use);
 }
 

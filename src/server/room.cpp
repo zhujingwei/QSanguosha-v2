@@ -948,8 +948,9 @@ bool Room::askForSkillInvoke(ServerPlayer *player, const QString &skill_name, co
     bool invoked = false;
     AI *ai = player->getAI();
     if (ai) {
-        thread->delay();
         invoked = ai->askForSkillInvoke(skill_name, data);
+        if (invoked)
+            thread->delay();
     } else {
         JsonArray skillCommand;
         if (data.type() == QVariant::String)
@@ -1703,6 +1704,23 @@ void Room::addPlayerHistory(ServerPlayer *player, const QString &key, int times)
     JsonArray arg;
     arg << key;
     arg << times;
+
+    if (player)
+        doNotify(player, S_COMMAND_ADD_HISTORY, arg);
+    else
+        doBroadcastNotify(S_COMMAND_ADD_HISTORY, arg);
+}
+
+void Room::clearPlayerHistory(ServerPlayer *player, const QString &key, const QString &except_name)
+{
+    if (player) {
+        player->clearHistory(key, except_name);
+    }
+
+    JsonArray arg;
+    arg << (key.isEmpty() ? "." : key);
+    arg << 0;
+    arg << except_name;
 
     if (player)
         doNotify(player, S_COMMAND_ADD_HISTORY, arg);
@@ -5843,6 +5861,14 @@ void Room::retrial(const Card *card, ServerPlayer *player, JudgeStruct *judge, c
 
     if (triggerResponded)
         thread->trigger(CardResponded, this, player, data);
+}
+
+void Room::setTurnCount(int turn)
+{
+    turn_num = turn;
+    JsonArray arg;
+    arg << turn_num;
+    doBroadcastNotify(S_COMMAND_SET_TURN, arg);
 }
 
 bool Room::askForYiji(ServerPlayer *guojia, QList<int> &cards, const QString &skill_name,

@@ -127,7 +127,7 @@ public:
         if (judge.isBad()) {
             room->broadcastSkillInvoke("wuhun", 2);
             //room->doLightbox("$WuhunAnimate", 3000);
-            room->doSuperLightbox("shenguanyu", "wuhun");
+//             room->doSuperLightbox("shenguanyu", "wuhun");
 
             LogMessage log;
             log.type = "#WuhunRevenge";
@@ -341,7 +341,7 @@ void GreatYeyanCard::use(Room *room, ServerPlayer *shenzhouyu, QList<ServerPlaye
 
         room->broadcastSkillInvoke("yeyan", (totalvictim > 1) ? 2 : 3);
         //room->doLightbox("$YeyanAnimate");
-        room->doSuperLightbox("shenzhouyu", "yeyan");
+//         room->doSuperLightbox("shenzhouyu", "yeyan");
 
         QList<ServerPlayer *> targets = map.keys();
         room->sortByActionOrder(targets);
@@ -370,7 +370,7 @@ void SmallYeyanCard::use(Room *room, ServerPlayer *shenzhouyu, QList<ServerPlaye
 {
     room->broadcastSkillInvoke("yeyan", 1);
     //room->doLightbox("$YeyanAnimate");
-    room->doSuperLightbox("shenzhouyu", "yeyan");
+//     room->doSuperLightbox("shenzhouyu", "yeyan");
     room->removePlayerMark(shenzhouyu, "@flame");
     Card::use(room, shenzhouyu, targets);
 }
@@ -516,10 +516,10 @@ public:
                     if (players.length() >= 4 && (shencc->getGeneralName() == "shencaocao" || shencc->getGeneral2Name() == "shencaocao"))
                     room->doLightbox("$GuixinAnimate");
                     */
-                    if (shencc->getGeneralName() != "shencaocao" && (shencc->getGeneralName() == "pr_shencaocao" || shencc->getGeneral2Name() == "pr_shencaocao"))
-                        room->doSuperLightbox("pr_shencaocao", "guixin");  // todo:pr_shencaocao's avatar
-                    else
-                        room->doSuperLightbox("shencaocao", "guixin");
+//                     if (shencc->getGeneralName() != "shencaocao" && (shencc->getGeneralName() == "pr_shencaocao" || shencc->getGeneral2Name() == "pr_shencaocao"))
+//                         room->doSuperLightbox("pr_shencaocao", "guixin");  // todo:pr_shencaocao's avatar
+//                     else
+//                         room->doSuperLightbox("shencaocao", "guixin");
 
                     foreach (ServerPlayer *player, players) {
                         if (player->isAlive() && !player->isAllNude()) {
@@ -655,7 +655,7 @@ void ShenfenCard::use(Room *room, ServerPlayer *shenlvbu, QList<ServerPlayer *> 
     if (shenlvbu->getGeneralName() != "shenlvbu" && (shenlvbu->getGeneralName() == "sp_shenlvbu" || shenlvbu->getGeneral2Name() == "sp_shenlvbu"))
         name = "sp_shenlvbu";
 
-    room->doSuperLightbox(name, "shenfen");
+//     room->doSuperLightbox(name, "shenfen");
 
     shenlvbu->loseMark("@wrath", 6);
 
@@ -1161,7 +1161,7 @@ public:
         room->broadcastSkillInvoke(objectName());
         room->notifySkillInvoked(shensimayi, objectName());
         //room->doLightbox("$BaiyinAnimate");
-        room->doSuperLightbox("shensimayi", "baiyin");
+//         room->doSuperLightbox("shensimayi", "baiyin");
 
         LogMessage log;
         log.type = "#BaiyinWake";

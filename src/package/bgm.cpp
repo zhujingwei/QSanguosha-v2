@@ -344,9 +344,9 @@ public:
     {
         Room *room = player->getRoom();
         room->broadcastSkillInvoke("zuixiang");
-        if (player->getPile("dream").isEmpty())
+//         if (player->getPile("dream").isEmpty())
             //room->doLightbox("$ZuixiangAnimate", 3000);
-            room->doSuperLightbox("bgm_pangtong", "zuixiang");
+//             room->doSuperLightbox("bgm_pangtong", "zuixiang");
 
         QList<Card::CardType> type_list;
         foreach (int card_id, player->getPile("dream")) {
@@ -981,10 +981,10 @@ void ShichouCard::onEffect(const CardEffectStruct &effect) const
         if (player->getGeneralName() == "tw_yuanshu" || (player->getGeneral2() != NULL && player->getGeneral2Name() == "tw_yuanshu"))
             generalName = "tw_yuanshu";
 
-        room->doSuperLightbox(generalName, "shichou");
+//         room->doSuperLightbox(generalName, "shichou");
     } else {
         room->broadcastSkillInvoke("shichou");
-        room->doSuperLightbox("bgm_liubei", "shichou");
+//         room->doSuperLightbox("bgm_liubei", "shichou");
     }
 
     room->removePlayerMark(player, "@hate");

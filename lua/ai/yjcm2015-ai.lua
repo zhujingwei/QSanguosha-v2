@@ -348,7 +348,7 @@ end
 sgs.ai_skill_cardask["@qinwang-discard"]=function(self)
     local cards = sgs.QList2Table(self.player:getHandcards())
     for _,card in ipairs(cards) do
-        if isCard("Slash", card, self.player) then
+        if isCard("Slash", card, self.player) or isCard("Peach", card, self.player) then
             return "."
         end
     end

@@ -252,6 +252,7 @@ private:
 
     QGraphicsRectItem *pausing_item;
     QGraphicsSimpleTextItem *pausing_text;
+    QGraphicsSimpleTextItem *turn_text;
 
     QString guhuo_log;
 
@@ -413,6 +414,7 @@ private slots:
     void removeLightBox();
 
     void showCard(const QString &player_name, int card_id);
+    void setTurnCount(int turn_num);
     void viewDistance();
 
     void speak();

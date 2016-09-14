@@ -364,7 +364,7 @@ void FenweiCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &ta
 {
     room->removePlayerMark(source, "@fenwei");
     //room->doLightbox("$FenweiAnimate");
-    room->doSuperLightbox("ganning", "fenwei");
+//     room->doSuperLightbox("ganning", "fenwei");
 
     CardUseStruct use = source->tag["fenwei"].value<CardUseStruct>();
     foreach(ServerPlayer *p, targets)

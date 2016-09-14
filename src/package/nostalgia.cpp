@@ -507,7 +507,7 @@ public:
 
         if (player->distanceTo(damage.to) == 1 && damage.card && damage.card->isKindOf("Slash")
             && damage.by_user && !damage.chain && !damage.transfer && player->askForSkillInvoke(this, data)) {
-            room->broadcastSkillInvoke(objectName(), 1);
+            player->broadcastSkillInvoke(objectName());
             JudgeStruct judge;
             judge.pattern = ".|heart";
             judge.good = false;
@@ -516,11 +516,9 @@ public:
 
             room->judge(judge);
             if (judge.isGood()) {
-                room->broadcastSkillInvoke(objectName(), 2);
                 room->loseMaxHp(damage.to);
                 return true;
-            } else
-                room->broadcastSkillInvoke(objectName(), 3);
+            }
         }
         return false;
     }
@@ -867,7 +865,7 @@ void NosFenchengCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *
     room->broadcastSkillInvoke("fencheng");
     //room->doLightbox("$NosFenchengAnimate", 3000);
 
-    room->doSuperLightbox("nos_liru", "nosfencheng");
+//     room->doSuperLightbox("nos_liru", "nosfencheng");
 
     QList<ServerPlayer *> players = room->getOtherPlayers(source);
     source->setFlags("NosFenchengUsing");

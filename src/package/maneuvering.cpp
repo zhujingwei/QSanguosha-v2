@@ -312,7 +312,7 @@ void FireAttack::onEffect(const CardEffectStruct &effect) const
     QString pattern = QString(".%1").arg(suit_str.at(0).toUpper());
     QString prompt = QString("@fire-attack:%1::%2").arg(effect.to->objectName()).arg(suit_str);
     if (effect.from->isAlive()) {
-        const Card *card_to_throw = room->askForCard(effect.from, pattern, prompt);
+        const Card *card_to_throw = room->askForCard(effect.from, pattern, prompt, QVariant(), Card::MethodDiscard, effect.to);
         if (card_to_throw)
             room->damage(DamageStruct(this, effect.from, effect.to, 1, DamageStruct::Fire));
         else

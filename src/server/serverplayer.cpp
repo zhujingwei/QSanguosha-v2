@@ -1312,6 +1312,7 @@ void ServerPlayer::gainAnExtraTurn()
         room->setCurrent(this);
         room->getThread()->trigger(TurnStart, room, this);
         room->setCurrent(current);
+        room->setPlayerFlag(current, "ExtraTurn");
     } 
     catch (TriggerEvent triggerEvent) {
         if (triggerEvent == TurnBroken) {

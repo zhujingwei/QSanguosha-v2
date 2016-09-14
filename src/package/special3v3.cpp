@@ -278,7 +278,7 @@ void ZhongyiCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &)
 {
     room->broadcastSkillInvoke("zhongyi");
     //room->doLightbox("$ZhongyiAnimate");
-    room->doSuperLightbox("vs_nos_guanyu", "zhongyi");
+//     room->doSuperLightbox("vs_nos_guanyu", "zhongyi");
     room->removePlayerMark(source, "@loyal");
     source->addToPile("loyal", this);
 }
@@ -455,7 +455,7 @@ public:
 
             room->broadcastSkillInvoke(objectName());
             //room->doLightbox("$ZhanshenAnimate");
-            room->doSuperLightbox("vs_nos_lvbu", "zhanshen");
+//             room->doSuperLightbox("vs_nos_lvbu", "zhanshen");
 
             if (player->getMark("@fight") > 0)
                 room->setPlayerMark(player, "@fight", 0);

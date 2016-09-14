@@ -187,7 +187,7 @@ public:
         return sd;
     }
 	
-    int getEffectIndex(const ServerPlayer *player, const Card *) const
+    int getEffectIndex(const ServerPlayer *, const Card *) const
     {
         return 1;
     }
@@ -1098,7 +1098,7 @@ void XianzhouCard::onEffect(const CardEffectStruct &effect) const
     Room *room = effect.from->getRoom();
     room->removePlayerMark(effect.from, "@handover");
     //room->doLightbox("$XianzhouAnimate");
-    room->doSuperLightbox("caifuren", "xianzhou");
+//     room->doSuperLightbox("caifuren", "xianzhou");
 
     int len = 0;
     DummyCard *dummy = new DummyCard;

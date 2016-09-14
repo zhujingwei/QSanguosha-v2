@@ -184,7 +184,7 @@ void CunsiCard::onEffect(const CardEffectStruct &effect) const
     Room *room = effect.from->getRoom();
     //room->doLightbox("$CunsiAnimate", 3000);
 
-    room->doSuperLightbox("mifuren", "cunsi");
+//     room->doSuperLightbox("mifuren", "cunsi");
 
     room->handleAcquireDetachSkills(effect.from, "-guixiu|-cunsi", "cunsi");
 
@@ -465,7 +465,7 @@ public:
                 /*if (players.length() >= 4)
                     room->doLightbox("$HengzhengAnimate");*/
 
-                room->doSuperLightbox("heg_dongzhuo", "hengzheng");
+//                 room->doSuperLightbox("heg_dongzhuo", "hengzheng");
 
                 foreach (ServerPlayer *player, players) {
                     if (player->isAlive() && !player->isAllNude()) {
@@ -516,7 +516,7 @@ public:
         room->broadcastSkillInvoke(objectName());
         //room->doLightbox("$BaolingAnimate");
 
-        room->doSuperLightbox("heg_dongzhuo", "baoling");
+//         room->doSuperLightbox("heg_dongzhuo", "baoling");
 
         room->setPlayerMark(player, "baoling", 1);
         if (room->changeMaxHpForAwakenSkill(player, 3)) {

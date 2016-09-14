@@ -78,7 +78,7 @@ public:
         if (flag) {
             room->broadcastSkillInvoke(objectName());
 
-            room->doSuperLightbox("jsp_sunshangxiang", "fanxiang");
+//             room->doSuperLightbox("jsp_sunshangxiang", "fanxiang");
 
             //room->doLightbox("$fanxiangAnimate", 5000);
             room->notifySkillInvoked(player, objectName());
@@ -184,7 +184,7 @@ public:
         Room *room = target->getRoom();
         room->broadcastSkillInvoke(objectName());
         //room->doLightbox("$JspdanqiAnimate");
-        room->doSuperLightbox("jsp_guanyu", "jspdanqi");
+//         room->doSuperLightbox("jsp_guanyu", "jspdanqi");
         room->setPlayerMark(target, objectName(), 1);
         if (room->changeMaxHpForAwakenSkill(target) && target->getMark(objectName()) > 0)
             room->handleAcquireDetachSkills(target, "mashu|nuzhan", objectName());
@@ -280,7 +280,7 @@ public:
             return false;
 
         room->broadcastSkillInvoke(objectName());
-        room->doSuperLightbox("jsp_jiangwei", objectName());
+//         room->doSuperLightbox("jsp_jiangwei", objectName());
 
         room->addPlayerMark(player, objectName(), 1);
         if (room->changeMaxHpForAwakenSkill(player) && player->getMark(objectName()) > 0) {
@@ -396,7 +396,7 @@ public:
             return false;
 
         room->broadcastSkillInvoke(objectName());
-        room->doSuperLightbox("jsp_zhaoyun", "suiren");
+//         room->doSuperLightbox("jsp_zhaoyun", "suiren");
         room->setPlayerMark(target, "@suiren", 0);
 
         room->handleAcquireDetachSkills(target, "-yicong", objectName());
@@ -794,8 +794,8 @@ void JSPJianshuCard::onUse(Room *room, const CardUseStruct &card_use) const
     room->sendLog(log);
 
     room->removePlayerMark(player, "@jspjianshu");
-    room->broadcastSkillInvoke("jspjianshu");
-    room->doSuperLightbox("jsp_jiaxu", "jspjianshu");
+    player->broadcastSkillInvoke("jspjianshu");
+//     room->doSuperLightbox("jsp_jiaxu", "jspjianshu");
 
     CardMoveReason reason(CardMoveReason::S_REASON_GIVE, player->objectName(), target->objectName(), "jspjianshu", QString());
     room->obtainCard(target, this, reason, true);
@@ -884,7 +884,7 @@ public:
 
     void onDamaged(ServerPlayer *player, const DamageStruct &) const
     {
-        if (!player->askForSkillInvoke(this))
+        if (!player->askForSkillInvoke(this, QVariant(), false))
             return;
 
         Room *room = player->getRoom();
@@ -900,8 +900,8 @@ public:
             if (target != NULL)
             {
                 room->removePlayerMark(player, "@jspyongdi");
-                room->broadcastSkillInvoke(objectName());
-                room->doSuperLightbox("jsp_jiaxu", objectName());
+                player->broadcastSkillInvoke(objectName());
+//                 room->doSuperLightbox("jsp_jiaxu", objectName());
                 LogMessage log;
                 log.type = "#GainMaxHp";
                 log.from = target;
@@ -931,6 +931,189 @@ public:
                 }
             }
         }
+    }
+};
+
+class Chenqing : public TriggerSkill
+{
+public:
+    Chenqing() : TriggerSkill("chenqing")
+    {
+        events << Dying << EventPhaseStart;
+    }
+
+    bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
+    {
+        if (triggerEvent == Dying) {
+            DyingStruct dying = data.value<DyingStruct>();
+            if (dying.who != player)
+                return false;
+
+            QList<ServerPlayer *> alives = room->getAlivePlayers();
+            foreach(ServerPlayer *source, alives)
+            {
+                if (source->hasSkill(this) && source->getMark("@advise") == 0) {
+                    if (doChenqing(room, source, player)) {
+                        if (player->getHp() > 0)
+                            return false;
+                    }
+                }
+            }
+        } else if (triggerEvent == EventPhaseStart) {
+            if (player->getPhase() == Player::RoundStart) {
+                if (player->getMark("@advise") > 0 && player->hasSkill(this, true) && player->getMark("chenqing") != room->getTurnCount())
+                    player->loseAllMarks("@advise");
+            }
+        }
+        return false;
+    }
+
+    bool triggerable(const Player *target) const
+    {
+        if (target)
+            return target->isAlive();
+
+        return false;
+    }
+
+private:
+    bool doChenqing(Room *room, ServerPlayer *source, ServerPlayer *victim) const
+    {
+        QList<ServerPlayer *> targets = room->getOtherPlayers(source);
+        targets.removeOne(victim);
+        if (targets.isEmpty())
+            return false;
+
+        ServerPlayer *target = room->askForPlayerChosen(source, targets, "chenqing", QString("@chenqing:%1").arg(victim->objectName()), false, true);
+        if (target) {
+            source->gainMark("@advise");
+            room->setPlayerMark(source, "chenqing", room->getTurnCount());
+            source->broadcastSkillInvoke("chenqing");
+
+            room->drawCards(target, 4, "chenqing");
+
+            const Card *to_discard = NULL;
+            if (target->getCardCount() > 4) {
+                to_discard = room->askForExchange(target, "chenqing", 4, 4, true, QString("@chenqing-exchange:%1:%2").arg(source->objectName()).arg(victim->objectName()), false);
+            } else {
+                DummyCard *dummy = new DummyCard;
+                dummy->addSubcards(target->getCards("he"));
+                to_discard = dummy;
+            }
+            QSet<Card::Suit> suit;
+            foreach(int id, to_discard->getSubcards())
+            {
+                const Card *c = Sanguosha->getCard(id);
+                if (c == NULL) continue;
+                suit.insert(c->getSuit());
+            }
+            room->throwCard(to_discard, target);
+            delete to_discard;
+
+            if (suit.count() == 4 && room->getCurrentDyingPlayer() == victim && target->getMark("Global_PreventPeach") == 0) {
+                Card *peach = Sanguosha->cloneCard("peach");
+                peach->setSkillName("_chenqing");
+                room->useCard(CardUseStruct(peach, target, victim, false), true);
+            }
+
+            return true;
+        }
+        return false;
+    }
+};
+
+class MoshiViewAsSkill : public OneCardViewAsSkill
+{
+public:
+    MoshiViewAsSkill() : OneCardViewAsSkill("moshi")
+    {
+        response_or_use = true;
+        response_pattern = "@@moshi";
+    }
+
+    bool viewFilter(const Card *to_select) const
+    {
+        if (to_select->isEquipped()) return false;
+        QString ori = Self->property("moshi").toString();
+        if (ori.isEmpty()) return NULL;
+        Card *a = Sanguosha->cloneCard(ori);
+        a->addSubcard(to_select);
+        return a->isAvailable(Self);
+    }
+
+    const Card *viewAs(const Card *originalCard) const
+    {
+        QString ori = Self->property("moshi").toString();
+        if (ori.isEmpty()) return NULL;
+        Card *a = Sanguosha->cloneCard(ori);
+        a->addSubcard(originalCard);
+        a->setSkillName(objectName());
+        return a;
+    }
+
+    bool isEnabledAtPlay(const Player *) const
+    {
+        return false;
+    }
+};
+
+class Moshi : public TriggerSkill
+{
+public:
+    Moshi() : TriggerSkill("moshi")
+    {
+        view_as_skill = new MoshiViewAsSkill;
+        events << EventPhaseStart << CardUsed;
+    }
+    bool trigger(TriggerEvent e, Room *room, ServerPlayer *player, QVariant &data) const
+    {
+        if (e == CardUsed && player->getPhase() == Player::Play) {
+            CardUseStruct use = data.value<CardUseStruct>();
+            if (use.card->isKindOf("SkillCard") || use.card->isKindOf("EquipCard")) return false;
+            QStringList list = player->tag[objectName()].toStringList();
+            if (list.length() == 2) return false;
+            list.append(use.card->objectName());
+            player->tag[objectName()] = list;
+        } else if (e == EventPhaseStart && player->getPhase() == Player::Finish) {
+            QStringList list = player->tag[objectName()].toStringList();
+            player->tag.remove(objectName());
+            if (list.isEmpty()) return false;
+            room->setPlayerProperty(player, "moshi", list.first());
+            try {
+                if (!cardIsAvailable(player, list.first())) {
+                    room->setPlayerProperty(player, "moshi", QString());
+                    return false;
+                }
+                const Card *first = room->askForUseCard(player, "@@moshi", QString("@moshi_ask:::%1").arg(list.takeFirst()));
+                if (first != NULL && !list.isEmpty() && !(player->isKongcheng() && player->getHandPile().isEmpty())) {
+                    room->setPlayerProperty(player, "moshi", list.first());
+                    Q_ASSERT(list.length() == 1);
+                    if (!cardIsAvailable(player, list.first())) {
+                        room->setPlayerProperty(player, "moshi", QString());
+                        return false;
+                    }
+                    room->askForUseCard(player, "@@moshi", QString("@moshi_ask:::%1").arg(list.takeFirst()));
+                }
+            } catch (TriggerEvent e) {
+                if (e == TurnBroken || e == StageChange) {
+                    room->setPlayerProperty(player, "moshi", QString());
+                }
+                throw e;
+            }
+        }
+        return false;
+    }
+
+    bool cardIsAvailable(ServerPlayer *player, QString &card_name) const
+    {
+        QList<const Card *> cards = player->getHandcards();
+        for (int i = 0; i < cards.length(); i++) {
+            const Card *card = cards.at(i);
+            Card *dest_card = Sanguosha->cloneCard(card_name, card->getSuit(), card->getNumber());
+            if (dest_card->isAvailable(player))
+                return true;
+        }
+        return false;
     }
 };
 
@@ -975,6 +1158,10 @@ JSPPackage::JSPPackage()
     related_skills.insertMulti("jspzhenlve", "#jspzhenlve-prohibit");
     jsp_jiaxu->addSkill(new JSPJianshu);
     jsp_jiaxu->addSkill(new JSPYongdi);
+
+    General *jsp_caiwenji = new General(this, "jsp_caiwenji", "wei", 3, false);
+    jsp_caiwenji->addSkill(new Chenqing);
+    jsp_caiwenji->addSkill(new Moshi);
 
     skills << new Nuzhan;
 

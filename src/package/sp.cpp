@@ -654,7 +654,7 @@ public:
         room->broadcastSkillInvoke(objectName());
         //room->doLightbox("$WujiAnimate", 4000);
 
-        room->doSuperLightbox("guanyinping", "wuji");
+//         room->doSuperLightbox("guanyinping", "wuji");
 
         room->setPlayerMark(player, "wuji", 1);
         if (room->changeMaxHpForAwakenSkill(player, 1)) {
@@ -1849,7 +1849,7 @@ public:
         room->notifySkillInvoked(zhugedan, objectName());
         //room->doLightbox("$JuyiAnimate");
 
-        room->doSuperLightbox("zhugedan", "juyi");
+//         room->doSuperLightbox("zhugedan", "juyi");
 
         LogMessage log;
         log.type = "#JuyiWake";
@@ -2787,7 +2787,7 @@ public:
 
         Room *room = hanba->getRoom();
         room->broadcastSkillInvoke(objectName());
-        room->doSuperLightbox("hanba", "zhiri");
+//         room->doSuperLightbox("hanba", "zhiri");
 
         room->setPlayerMark(hanba, objectName(), 1);
         if (room->changeMaxHpForAwakenSkill(hanba) && hanba->getMark("zhiri") > 0)
@@ -2850,6 +2850,124 @@ public:
         }
 
         return NULL;
+    }
+};
+
+class Zhidao : public TriggerSkill
+{
+public:
+    Zhidao() : TriggerSkill("zhidao")
+    {
+        events << Damage;
+        frequency = Skill::Compulsory;
+    }
+
+    bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
+    {
+        if (player->hasFlag("zhidao-invoked") || player->getPhase() != Player::Play)
+            return false;
+
+        DamageStruct damage = data.value<DamageStruct>();
+        if (damage.to->isAllNude())
+            return false;
+
+        QStringList flags = { "h", "j", "e" };
+        QStringList flags_tomove;
+        foreach(QString flag, flags) {
+            if (damage.to->getCards(flag).length() == 0)
+                flags_tomove << flag;
+        }
+        foreach(QString flag, flags_tomove) {
+            if (flags.contains(flag))
+                flags.removeOne(flag);
+        }
+        while (flags.length() > 0 && !damage.to->getCards(flags.join("")).isEmpty()) {
+            int card_id = room->askForCardChosen(player, damage.to, flags.join(""), objectName());
+            if (card_id != -1) {
+                switch (room->getCardPlace(card_id)) {
+                case Player::PlaceEquip:
+                    flags.removeOne("e");
+                    break;
+                case Player::PlaceHand:
+                    flags.removeOne("h");
+                    break;
+                case Player::PlaceJudge:
+                    flags.removeOne("j");
+                    break;
+                default:
+                    break;
+                }
+                player->obtainCard(Sanguosha->getCard(card_id), false);
+                if (!player->hasFlag("zhidao-invoked"))
+                    player->broadcastSkillInvoke(objectName());
+                room->setPlayerFlag(player, "zhidao-invoked");
+            }
+        }
+        return false;
+    }
+};
+
+class ZhidaoProhibit : public ProhibitSkill
+{
+public:
+    ZhidaoProhibit() : ProhibitSkill("#zhidao-prohibit")
+    {
+
+    }
+
+    bool isProhibited(const Player *from, const Player *to, const Card *card, const QList<const Player *> &) const
+    {
+        if (from->hasFlag("zhidao-invoked") && card->getTypeId() != Card::TypeSkill) {
+            return from != to;
+        }
+        return false;
+    }
+};
+
+class Jili : public TriggerSkill
+{
+public:
+    Jili() : TriggerSkill("jili")
+    {
+        events << TargetConfirming;
+        frequency = Skill::Compulsory;
+    }
+
+    bool triggerable(const ServerPlayer *target) const
+    {
+        return target != NULL;
+    }
+
+    bool trigger(TriggerEvent , Room *room, ServerPlayer *, QVariant &data) const
+    {
+        CardUseStruct use = data.value<CardUseStruct>();
+        if (!use.card->isRed() || (use.card->getTypeId() != Card::TypeBasic && !use.card->isNDTrick()))
+            return false;
+        QList<ServerPlayer *> yanbaihus = room->findPlayersBySkillName(objectName());
+        bool changed = true;
+        while (changed) {
+            changed = false;
+            foreach (ServerPlayer *yanbaihu, yanbaihus) {
+                if (!use.to.contains(yanbaihu) && use.from != yanbaihu) {
+                    foreach (ServerPlayer *to, use.to) {
+                        if (to->distanceTo(yanbaihu) == 1 && use.card->isAvailable(yanbaihu) && !use.from->isProhibited(yanbaihu, use.card)) {
+                            use.to << yanbaihu;
+                            room->sendCompulsoryTriggerLog(yanbaihu, objectName());
+                            int index = 1;
+                            if (use.card->isKindOf("Peach") || use.card->isKindOf("ExNihilo") || use.card->isKindOf("Analeptic"))
+                                index = 2;
+                            yanbaihu->broadcastSkillInvoke(objectName(), index);
+                            changed = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+        }
+        room->sortByActionOrder(use.to);
+        data = QVariant::fromValue(use);
+        return false;
     }
 };
 
@@ -3008,6 +3126,12 @@ SPPackage::SPPackage()
     sunhao->addSkill(new Canshi);
     sunhao->addSkill(new Chouhai);
     sunhao->addSkill(new Guiming);
+
+    General *yanbaihu = new General(this, "yanbaihu", "qun");
+    yanbaihu->addSkill(new Zhidao);
+    yanbaihu->addSkill(new ZhidaoProhibit);
+    related_skills.insertMulti("zhidao", "#zhidao-prohibit");
+    yanbaihu->addSkill(new Jili);
 
     addMetaObject<YuanhuCard>();
     addMetaObject<XuejiCard>();

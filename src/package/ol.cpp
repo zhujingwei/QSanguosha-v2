@@ -1210,142 +1210,6 @@ public:
     }
 };
 
-class OldMoshiViewAsSkill : public OneCardViewAsSkill
-{
-public:
-    OldMoshiViewAsSkill() : OneCardViewAsSkill("Omoshi") {
-        filter_pattern = ".";
-        response_or_use = true;
-        response_pattern = "@@Omoshi";
-    }
-
-    const Card *viewAs(const Card *originalCard) const {
-        const Card *ori = Self->tag[objectName()].value<const Card *>();
-        if (ori == NULL) return NULL;
-        Card *a = Sanguosha->cloneCard(ori->objectName());
-        a->addSubcard(originalCard);
-        a->setSkillName(objectName());
-        return a;
-
-    }
-
-    bool isEnabledAtPlay(const Player *) const {
-        return false;
-    }
-};
-
-class OldMoshi : public TriggerSkill  //a souvenir for Xusine......
-{
-public:
-    OldMoshi() : TriggerSkill("Omoshi") {
-        view_as_skill = new OldMoshiViewAsSkill;
-        events << EventPhaseStart << CardUsed;
-    }
-
-    QDialog *getDialog() const {
-        return GuhuoDialog::getInstance(objectName(), true, true, false, false, true);
-    }
-
-    bool trigger(TriggerEvent e, Room *room, ServerPlayer *player, QVariant &data) const {
-        if (e == CardUsed && player->getPhase() == Player::Play) {
-            CardUseStruct use = data.value<CardUseStruct>();
-            if (use.card->isKindOf("SkillCard") || use.card->isKindOf("EquipCard")) return false;
-            QStringList list = player->tag[objectName()].toStringList();
-            list.append(use.card->objectName());
-            player->tag[objectName()] = list;
-        } else if (e == EventPhaseStart && player->getPhase() == Player::Finish) {
-            QStringList list = player->tag[objectName()].toStringList();
-            player->tag.remove(objectName());
-            if (list.isEmpty()) return false;
-            room->setPlayerProperty(player, "allowed_guhuo_dialog_buttons", list.join("+"));
-            try {
-                const Card *first = room->askForUseCard(player, "@@Omoshi", "@moshi_ask_first");
-                if (first) {
-                    list.removeOne(first->objectName());
-                    room->setPlayerProperty(player, "allowed_guhuo_dialog_buttons", list.join("+"));
-                    room->askForUseCard(player, "@@Omoshi", "@moshi_ask_second");
-                }
-            } catch (TriggerEvent e) {
-                if (e == TurnBroken || e == StageChange) {
-                    room->setPlayerProperty(player, "allowed_guhuo_dialog_buttons", QString());
-                }
-                throw e;
-            }
-        }
-        return false;
-    }
-};
-
-
-class MoshiViewAsSkill : public OneCardViewAsSkill
-{
-public:
-    MoshiViewAsSkill() : OneCardViewAsSkill("moshi") {
-        response_or_use = true;
-        response_pattern = "@@moshi";
-    }
-
-    bool viewFilter(const Card *to_select) const {
-        if (to_select->isEquipped()) return false;
-        QString ori = Self->property("moshi").toString();
-        if (ori.isEmpty()) return NULL;
-        Card *a = Sanguosha->cloneCard(ori);
-        a->addSubcard(to_select);
-        return a->isAvailable(Self);
-    }
-
-    const Card *viewAs(const Card *originalCard) const {
-        QString ori = Self->property("moshi").toString();
-        if (ori.isEmpty()) return NULL;
-        Card *a = Sanguosha->cloneCard(ori);
-        a->addSubcard(originalCard);
-        a->setSkillName(objectName());
-        return a;
-    }
-
-    bool isEnabledAtPlay(const Player *) const {
-        return false;
-    }
-};
-
-
-class Moshi : public TriggerSkill
-{
-public:
-    Moshi() : TriggerSkill("moshi") {
-        view_as_skill = new MoshiViewAsSkill;
-        events << EventPhaseStart << CardUsed;
-    }
-    bool trigger(TriggerEvent e, Room *room, ServerPlayer *player, QVariant &data) const {
-        if (e == CardUsed && player->getPhase() == Player::Play) {
-            CardUseStruct use = data.value<CardUseStruct>();
-            if (use.card->isKindOf("SkillCard") || use.card->isKindOf("EquipCard")) return false;
-            QStringList list = player->tag[objectName()].toStringList();
-            if (list.length() == 2) return false;
-            list.append(use.card->objectName());
-            player->tag[objectName()] = list;
-        } else if (e == EventPhaseStart && player->getPhase() == Player::Finish) {
-            QStringList list = player->tag[objectName()].toStringList();
-            player->tag.remove(objectName());
-            if (list.isEmpty()) return false;
-            room->setPlayerProperty(player, "moshi", list.first());
-            try {
-                const Card *first = room->askForUseCard(player, "@@moshi", QString("@moshi_ask:::%1").arg(list.takeFirst()));
-                if (first != NULL && !list.isEmpty() && !(player->isKongcheng() && player->getHandPile().isEmpty())) {
-                    room->setPlayerProperty(player, "moshi", list.first());
-                    Q_ASSERT(list.length() == 1);
-                    room->askForUseCard(player, "@@moshi", QString("@moshi_ask:::%1").arg(list.takeFirst()));
-                }
-            } catch (TriggerEvent e) {
-                if (e == TurnBroken || e == StageChange) {
-                    room->setPlayerProperty(player, "moshi", QString());
-                }
-                throw e;
-            }
-        }
-        return false;
-    }
-};
 
 class FengpoRecord : public TriggerSkill
 {
@@ -1510,88 +1374,6 @@ public:
     }
 };
 
-class OlChenqing : public TriggerSkill
-{
-public:
-    OlChenqing() : TriggerSkill("olchenqing") {
-        events << Dying << EventPhaseStart;
-    }
-
-    bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *player, QVariant &data) const {
-        if (triggerEvent == Dying) {
-            DyingStruct dying = data.value<DyingStruct>();
-            if (dying.who != player)
-                return false;
-
-            QList<ServerPlayer *> alives = room->getAlivePlayers();
-            foreach(ServerPlayer *source, alives) {
-                if (source->hasSkill(this) && source->getMark("@advise") == 0) {
-                    if (doChenqing(room, source, player)) {
-                        if (player->getHp() > 0)
-                            return false;
-                    }
-                }
-            }
-        } else if (triggerEvent == EventPhaseStart) {
-            if (room->getTag("ExtraTurn").toBool())
-                return false;
-            if (player->getPhase() == Player::RoundStart) {
-                if (player->getMark("@advise") > 0 && player->hasSkill(this, true))
-                    player->loseAllMarks("@advise");
-            }
-        }
-        return false;
-    }
-
-    bool triggerable(const Player *target) const {
-        if (target)
-            return target->isAlive();
-
-        return false;
-    }
-
-private:
-    bool doChenqing(Room *room, ServerPlayer *source, ServerPlayer *victim) const {
-        QList<ServerPlayer *> targets = room->getOtherPlayers(source);
-        targets.removeOne(victim);
-        if (targets.isEmpty())
-            return false;
-
-        ServerPlayer *target = room->askForPlayerChosen(source, targets, "olchenqing", QString("@olchenqing:%1").arg(victim->objectName()), false, true);
-        if (target) {
-            source->gainMark("@advise");
-            room->broadcastSkillInvoke("olchenqing");
-
-            room->drawCards(target, 4, "olchenqing");
-
-            const Card *to_discard = NULL;
-            if (target->getCardCount() > 4) {
-                to_discard = room->askForExchange(target, "olchenqing", 4, 4, true, QString("@olchenqing-exchange:%1:%2").arg(source->objectName()).arg(victim->objectName()), false);
-            } else {
-                DummyCard *dummy = new DummyCard;
-                dummy->addSubcards(target->getCards("he"));
-                to_discard = dummy;
-            }
-            QSet<Card::Suit> suit;
-            foreach(int id, to_discard->getSubcards()) {
-                const Card *c = Sanguosha->getCard(id);
-                if (c == NULL) continue;
-                suit.insert(c->getSuit());
-            }
-            room->throwCard(to_discard, target);
-            delete to_discard;
-
-            if (suit.count() == 4 && room->getCurrentDyingPlayer() == victim) {
-                Card *peach = Sanguosha->cloneCard("peach");
-                peach->setSkillName("_olchenqing");
-                room->useCard(CardUseStruct(peach, target, victim, false), true);
-            }
-
-            return true;
-        }
-        return false;
-    }
-};
 
 class OlYongsi : public TriggerSkill
 {
@@ -1643,7 +1425,7 @@ public:
                     msg.type = "#oljixi-wake";
                     msg.from = player;
                     room->sendLog(msg);
-                    room->doSuperLightbox("yuanshu", "oljixi");
+//                     room->doSuperLightbox("yuanshu", "oljixi");
                     room->broadcastSkillInvoke("oljixi");
                     room->notifySkillInvoked(player, "oljixi");
                     room->changeMaxHpForAwakenSkill(player, 1);
@@ -1750,10 +1532,6 @@ OLPackage::OLPackage()
     bulianshi->addSkill(new OlAnxu);
     bulianshi->addSkill("zhuiyi");
 
-    General *caiwenji2 = new General(this, "ol_ii_caiwenji", "wei", 3, false);
-    caiwenji2->addSkill(new OlChenqing);
-    caiwenji2->addSkill(new Moshi);
-
     General *yuanshu = new General(this, "ol_yuanshu", "qun");
     yuanshu->addSkill(new OlYongsi);
     yuanshu->addSkill(new OlJixi);
@@ -1768,7 +1546,6 @@ OLPackage::OLPackage()
     addMetaObject<BushiCard>();
     addMetaObject<OlAnxuCard>();
 
-    skills << new OldMoshi;
 }
 
 ADD_PACKAGE(OL)

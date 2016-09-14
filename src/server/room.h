@@ -117,6 +117,8 @@ public:
     void showAllCards(ServerPlayer *player, ServerPlayer *to = NULL);
     void retrial(const Card *card, ServerPlayer *player, JudgeStruct *judge,
         const QString &skill_name, bool exchange = false);
+    void setTurnCount(int turn_num);
+    inline int getTurnCount() const { return turn_num; }
 
     // Ask a player to send a server request and returns the client response. Call is blocking until client
     // replies or server times out, whichever is earlier.
@@ -365,6 +367,7 @@ public:
     const Card *askForSinglePeach(ServerPlayer *player, ServerPlayer *dying);
     const bool Room::shouldAskForPeach(ServerPlayer *player, ServerPlayer *dying) const;
     void addPlayerHistory(ServerPlayer *player, const QString &key, int times = 1);
+    void clearPlayerHistory(ServerPlayer *player, const QString &key = QString(), const QString &except_name = QString());
 
     void toggleReadyCommand(ServerPlayer *player, const QVariant &);
     void speakCommand(ServerPlayer *player, const QString &arg);
@@ -504,6 +507,7 @@ private:
     bool game_started;
     bool game_finished;
     bool game_paused;
+    int turn_num;
     lua_State *L;
     QList<AI *> ais;
 

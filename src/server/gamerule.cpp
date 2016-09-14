@@ -115,6 +115,7 @@ bool GameRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *play
     if (player == NULL) {
         if (triggerEvent == GameStart) {
             Sanguosha->playSystemAudioEffect("gamestart");
+            room->setTurnCount(1);
             if (room->getMode() == "04_boss") {
                 int difficulty = Config.value("BossModeDifficulty", 0).toInt();
                 if ((difficulty & (1 << GameRule::BMDIncMaxHp)) > 0) {
@@ -168,11 +169,14 @@ bool GameRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *play
     switch (triggerEvent) {
     case TurnStart: {
         player = room->getCurrent();
+
+        if (!room->getTag("FirstRound").toBool() && !player->hasFlag("ExtraTurn") && player->isLord())
+            room->setTurnCount(room->getTurnCount() + 1);
+
         if (room->getTag("FirstRound").toBool()) {
             room->setTag("FirstRound", false);
             room->setPlayerFlag(player, "Global_FirstRound");
         }
-
         LogMessage log;
         log.type = "$AppendSeparator";
         room->sendLog(log);
@@ -208,7 +212,9 @@ bool GameRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *play
     }
     case EventPhaseEnd: {
         if (player->getPhase() == Player::Play)
-            room->addPlayerHistory(player, ".");
+            room->clearPlayerHistory(player, QString(), "Analeptic");
+        if (player->getPhase() == Player::Finish)
+            room->clearPlayerHistory(player, "Analeptic");
         break;
     }
     case EventPhaseChanging: {
@@ -231,7 +237,8 @@ bool GameRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *play
         } else if (change.to == Player::Play) {
             room->setPlayerMark(player, "damage_point_play_phase", 0);
             room->addPlayerHistory(player, ".");
-        }
+        } else if (change.to == Player::RoundStart)
+            room->clearPlayerHistory(player);
         break;
     }
     case PreCardUsed: {
@@ -1005,9 +1012,9 @@ void GameRule::doBossModeDifficultySettings(ServerPlayer *lord) const
                         acquired.removeOne(a);
                 }
                 int len = qMin(4, acquired.length() + 1);
-                foreach(QString skillname, Sanguosha->getRandomSkills(40))//Config.BossExpSkills.keys())
+                foreach(QString skillname, Config.BossExpSkills.keys())
                 {
-                    int cost = (qrand() % 100 + 1) * len;//Config.BossExpSkills[skillname] * len;
+                    int cost = Config.BossExpSkills[skillname] * len;
                     allchoices << QString("[%1]||%2").arg(cost).arg(skillname);
                     if (p->hasSkill(skillname, true)) continue;
                     if (exp >= cost)
@@ -1249,7 +1256,7 @@ bool HulaoPassMode::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer 
         room->sendLog(log);
 
         //room->doLightbox("$StageChange", 5000);
-        room->doSuperLightbox("shenlvbu2", "StageChange");
+//         room->doSuperLightbox("shenlvbu2", "StageChange");
 
         QList<const Card *> tricks = lord->getJudgingArea();
         if (!tricks.isEmpty()) {

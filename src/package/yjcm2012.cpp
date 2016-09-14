@@ -480,7 +480,7 @@ public:
             liaohua->broadcastSkillInvoke(objectName());
             //room->doLightbox("$FuliAnimate", 3000);
 
-            room->doSuperLightbox("liaohua", "fuli");
+//             room->doSuperLightbox("liaohua", "fuli");
 
             room->removePlayerMark(liaohua, "@laoji");
             room->recover(liaohua, RecoverStruct(liaohua, NULL, getKingdoms(room) - liaohua->getHp()));
@@ -717,7 +717,7 @@ void JiefanCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &ta
     ServerPlayer *target = targets.first();
     source->tag["JiefanTarget"] = QVariant::fromValue(target);
     //room->doLightbox("$JiefanAnimate", 2500);
-    room->doSuperLightbox("handang", "jiefan");
+//     room->doSuperLightbox("handang", "jiefan");
 
     foreach (ServerPlayer *player, room->getAllPlayers()) {
         if (player->isAlive() && player->inMyAttackRange(target))
@@ -1138,7 +1138,7 @@ public:
 
         //room->doLightbox("$ZiliAnimate", 4000);
 
-        room->doSuperLightbox("zhonghui", "zili");
+//         room->doSuperLightbox("zhonghui", "zili");
 
         room->setPlayerMark(zhonghui, "zili", 1);
         if (room->changeMaxHpForAwakenSkill(zhonghui)) {

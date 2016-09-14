@@ -362,7 +362,7 @@ public:
         if (pangtong->askForSkillInvoke(this, data)) {
             pangtong->broadcastSkillInvoke(objectName());
             //room->doLightbox("$NiepanAnimate");
-            room->doSuperLightbox("pangtong", "niepan");
+//             room->doSuperLightbox("pangtong", "niepan");
 
             room->removePlayerMark(pangtong, "@nirvana");
 

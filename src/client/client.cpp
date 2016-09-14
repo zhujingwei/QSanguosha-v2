@@ -74,6 +74,7 @@ Client::Client(QObject *parent, const QString &filename)
     m_callbacks[S_COMMAND_UPDATE_PILE] = &Client::setPileNumber;
     m_callbacks[S_COMMAND_SYNCHRONIZE_DISCARD_PILE] = &Client::synchronizeDiscardPile;
     m_callbacks[S_COMMAND_CARD_FLAG] = &Client::setCardFlag;
+    m_callbacks[S_COMMAND_SET_TURN] = &Client::setTurnCount;
 
     // interactive methods
     m_interactions[S_COMMAND_CHOOSE_GENERAL] = &Client::askForGeneral;
@@ -1036,7 +1037,7 @@ void Client::speakToServer(const QString &text)
 void Client::addHistory(const QVariant &history)
 {
     JsonArray args = history.value<JsonArray>();
-    if (args.size() != 2 || !JsonUtils::isString(args[0]) || !JsonUtils::isNumber(args[1])) return;
+    if (args.size() < 2 || !JsonUtils::isString(args[0]) || !JsonUtils::isNumber(args[1])) return;
 
     QString add_str = args[0].toString();
     int times = args[1].toInt();
@@ -1044,7 +1045,11 @@ void Client::addHistory(const QVariant &history)
         emit card_used();
         return;
     } else if (add_str == ".") {
-        Self->clearHistory();
+        if (args.size() > 2) {
+            QString except = args[2].toString();
+            Self->clearHistory(QString(), except);
+        } else
+            Self->clearHistory();
         return;
     }
 
@@ -2055,6 +2060,16 @@ void Client::updateBossLevel(const QVariant &arg)
 {
     if (!JsonUtils::isNumber(arg)) return;
     m_bossLevel = arg.toInt();
+}
+
+void Client::setTurnCount(const QVariant &arg)
+{
+    JsonArray args = arg.value<JsonArray>();
+    if (args.size() != 1) return;
+
+    int turn_num = args[0].toInt();
+
+    emit set_turn_num(turn_num);
 }
 
 void Client::setAvailableCards(const QVariant &pile)

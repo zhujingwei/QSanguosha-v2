@@ -940,7 +940,7 @@ public:
         room->broadcastSkillInvoke(objectName());
         room->notifySkillInvoked(player, objectName());
         //room->doLightbox("$JiehuoAnimate", 3000);
-        room->doSuperLightbox("wis_shuijing", "jiehuo");
+//         room->doSuperLightbox("wis_shuijing", "jiehuo");
 
         room->setPlayerMark(player, "jiehuo", 1);
 

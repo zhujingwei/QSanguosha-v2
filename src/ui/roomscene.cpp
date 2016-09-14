@@ -167,6 +167,7 @@ RoomScene::RoomScene(QMainWindow *main_window)
     connect(ClientInstance, SIGNAL(start_in_xs()), this, SLOT(startInXs()));
 
     connect(ClientInstance, &Client::skill_updated, this, &RoomScene::updateSkill);
+    connect(ClientInstance, &Client::set_turn_num, this, &RoomScene::setTurnCount);
 
     guanxing_box = new GuanxingBox;
     guanxing_box->hide();
@@ -347,6 +348,15 @@ RoomScene::RoomScene(QMainWindow *main_window)
 
     pausing_item->hide();
     pausing_text->hide();
+
+    turn_text = new QGraphicsSimpleTextItem(tr("Turn %1").arg(0));
+    QFont turn_font = Config.BigFont;
+    turn_font.setPixelSize(30);
+    turn_text->setFont(turn_font);
+    turn_text->setBrush(Qt::white);
+    turn_text->setZValue(1000);
+    turn_text->setVisible(false);
+    addItem(turn_text);
 
     pindian_box = new Window(tr("pindian"), QSize(255, 200), "image/system/pindian.png");
     pindian_box->setOpacity(0);
@@ -984,6 +994,8 @@ void RoomScene::updateTable()
     pausing_text->setPos(m_tableCenterPos - pausing_text->boundingRect().center());
     pausing_item->setRect(sceneRect());
     pausing_item->setPos(0, 0);
+    QRectF turn_rect(col2, 0, dashboard->width() - col2, row1);
+    turn_text->setPos((turn_rect.topRight() - turn_rect.topLeft()) / 2 + turn_rect.topLeft() - (turn_text->boundingRect().topRight() + (turn_text->boundingRect().topRight() - turn_text->boundingRect().topLeft()) / 2));
 
     int *seatToRegion;
     bool pkMode = false;
@@ -1625,7 +1637,7 @@ void RoomScene::chooseOption(const QString &skillName, const QStringList &option
     if (skillName.contains("guhuo") && !guhuo_log.isEmpty()) {
         QLabel *guhuo_text = new QLabel(guhuo_log, dialog);
         guhuo_text->setObjectName("guhuo_text");
-        guhuo_text->setMaximumWidth(240);
+        guhuo_text->setMaximumWidth(400);
         guhuo_text->setWordWrap(true);
         layout->addWidget(guhuo_text);
 
@@ -3538,6 +3550,16 @@ void RoomScene::showCard(const QString &player_name, int card_id)
 
     QString card_str = QString::number(card_id);
     log_box->appendLog("$ShowCard", player->objectName(), QStringList(), card_str);
+}
+
+void RoomScene::setTurnCount(int turn_num)
+{
+    if (turn_num == 0)
+        turn_text->setVisible(false);
+    else {
+        turn_text->setText(tr("Turn %1").arg(turn_num));
+        turn_text->setVisible(true);
+    }
 }
 
 void RoomScene::chooseSkillButton()

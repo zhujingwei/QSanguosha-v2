@@ -1490,6 +1490,21 @@ function sgs.ai_skill_pindian.yijue(minusecard, self, requestor)
 	return self:getMaxCard()
 end
 
+sgs.ai_skill_choice.yijue = function(self, choices, data)
+    local target
+    for _,p in sgs.qlist(self.room:getAllPlayers()) do
+        if p:hasFlag("YijueTarget") then
+            target = p
+        end
+    end
+
+    assert(target)
+    if self:isFriend(target) then
+        return "recover"
+    end
+    return "cancel"
+end
+
 sgs.ai_cardneed.yijue = function(to, card, self)
 	local cards = to:getHandcards()
 	local has_big = false

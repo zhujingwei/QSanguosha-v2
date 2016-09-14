@@ -1064,7 +1064,7 @@ function sgs.ai_slash_prohibit.duanchang(self, from, to)
 	return false
 end
 
-
+sgs.ai_skill_invoke.xinsheng = true
 
 sgs.ai_skill_invoke.huashen = function(self)
 	return self.player:getHp() > 0

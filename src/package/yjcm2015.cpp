@@ -193,7 +193,7 @@ public:
 
             if (player->hasLordSkill(this) && player->getMark(limit_mark) > 0 && hasWeiGens(player) && player->askForSkillInvoke(this, data)) {
                 player->broadcastSkillInvoke(objectName());
-                room->doSuperLightbox(player->getGeneralName(), "xingshuai");
+//                 room->doSuperLightbox(player->getGeneralName(), "xingshuai");
 
                 room->removePlayerMark(player, limit_mark);
 
@@ -412,7 +412,7 @@ public:
     bool onPhaseChange(ServerPlayer *target) const
     {
         if (target->askForSkillInvoke(this)) {
-            target->getRoom()->broadcastSkillInvoke(objectName());
+            target->broadcastSkillInvoke(objectName());
             target->drawCards(2, "jigong");
             target->getRoom()->setPlayerFlag(target, "jigong");
         }
@@ -499,6 +499,13 @@ public:
         }
 
         return false;
+    }
+
+    int getEffectIndex(const ServerPlayer *, const Card *card) const
+    {
+        if (card->isKindOf("Jink"))
+            return -2;
+        return -1;
     }
 };
 

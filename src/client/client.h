@@ -134,6 +134,7 @@ public:
     void setCardFlag(const QVariant &pattern_str);
     void updateCard(const QVariant &arg);
     void updateBossLevel(const QVariant &arg);
+    void setTurnCount(const QVariant &arg);
 
     void fillAG(const QVariant &cards_str);
     void takeAG(const QVariant &take_str);
@@ -354,6 +355,7 @@ signals:
     void start_in_xs();
 
     void skill_updated(const QString &skill_name);
+    void set_turn_num(int turn_num);
 };
 
 extern Client *ClientInstance;

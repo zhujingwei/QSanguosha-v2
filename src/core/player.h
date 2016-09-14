@@ -207,7 +207,7 @@ public:
     virtual QList<int> getHandPile() const;
 
     void addHistory(const QString &name, int times = 1);
-    void clearHistory(const QString &name = QString());
+    void clearHistory(const QString &name = QString(), const QString &except_name = QString());
     bool hasUsed(const QString &card_class) const;
     int usedTimes(const QString &card_class) const;
     int getSlashCount() const;
