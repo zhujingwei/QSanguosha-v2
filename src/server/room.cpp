@@ -4648,6 +4648,16 @@ void Room::acquireSkill(ServerPlayer *player, const QString &skill_name, const Q
     if (skill) acquireSkill(player, skill, reason, open);
 }
 
+void Room::updateSkill(ServerPlayer *player, QString skill_name)
+{
+    if (player->hasSkill(skill_name, true)) {
+        JsonArray args;
+        args << QSanProtocol::S_GAME_EVENT_UPDATE_SKILL;
+        args << skill_name;
+        doBroadcastNotify(QSanProtocol::S_COMMAND_LOG_EVENT, args);
+    }
+}
+
 void Room::setTag(const QString &key, const QVariant &value)
 {
     tag.insert(key, value);

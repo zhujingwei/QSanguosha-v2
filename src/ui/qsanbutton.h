@@ -112,6 +112,9 @@ public:
         return _m_viewAsSkill;
     }
 
+public slots:
+    void updateSkillDesc();
+
 protected:
     virtual void _setSkillType(SkillType type);
     virtual void _repaint() = 0;
@@ -188,6 +191,7 @@ public:
     // Any one who call the following functions are responsible for
     // destroying the buttons returned
     QSanSkillButton *addSkillButtonByName(const QString &skillName);
+    void updateSkillButtonByName(const QString &skillName);
     inline QSanSkillButton *removeSkillButtonByName(const QString &skillName)
     {
         QSanInvokeSkillButton *button = getSkillButtonByName(skillName);

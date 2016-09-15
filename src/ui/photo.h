@@ -42,6 +42,7 @@ public:
     void setFrame(FrameType type);
     virtual QRectF boundingRect() const;
     QGraphicsItem *getMouseClickReceiver();
+    void updateAvatarTooltip();
 
 public slots:
     void updatePhase();

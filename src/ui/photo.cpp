@@ -275,3 +275,13 @@ QGraphicsItem *Photo::getMouseClickReceiver()
     return this;
 }
 
+void Photo::updateAvatarTooltip()
+{
+    if (m_player) {
+        QString description = m_player->getSkillDescription();
+        _m_avatarArea->setToolTip(description);
+        if (m_player->getGeneral2())
+            _m_smallAvatarArea->setToolTip(description);
+    }
+}
+

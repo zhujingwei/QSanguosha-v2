@@ -492,6 +492,11 @@ void RoomScene::handleGameEvent(const QVariant &args)
         foreach(Photo *photo, photos)
             photo->updateAvatarTooltip();
         dashboard->updateAvatarTooltip();
+        if (arg.size() > 1) {
+            const Skill *skill = Sanguosha->getSkill(arg[1].toString());
+            if (skill != NULL)
+                dashboard->updateSkillButton(skill->objectName());
+        }
         if (eventType == S_GAME_EVENT_PREPARE_SKILL)
             updateSkillButtons(true);
         break;

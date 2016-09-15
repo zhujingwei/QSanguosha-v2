@@ -157,6 +157,11 @@ void Dashboard::repaintAll()
     PlayerCardContainer::repaintAll();
 }
 
+void Dashboard::updateSkillButton(const QString &skillName)
+{
+    _m_skillDock->updateSkillButtonByName(skillName);
+}
+
 void Dashboard::_createRight()
 {
     _m_rightFrame = new QGraphicsPixmapItem(_m_groupMain);

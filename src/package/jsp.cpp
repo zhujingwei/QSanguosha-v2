@@ -238,6 +238,13 @@ public:
         return false;
     }
 
+    QString getDescriptionSource(const Player *player /* = 0 */) const
+    {
+        if (player != NULL && getFrequency(player) != Skill::Compulsory)
+            return objectName() + "-notcomp";
+        return objectName();
+    }
+
 private:
     bool invoke(ServerPlayer *target) const
     {
@@ -248,10 +255,7 @@ private:
     {
         Room *room = target->getRoom();
 
-        if (getFrequency(target) == Compulsory)
-            room->broadcastSkillInvoke(objectName(), 1);
-        else
-            room->broadcastSkillInvoke(objectName(), 2);
+        target->broadcastSkillInvoke(objectName());
 
         room->loseHp(target);
         if (target->isAlive())
@@ -279,7 +283,7 @@ public:
         if (dying.who != player)
             return false;
 
-        room->broadcastSkillInvoke(objectName());
+        player->broadcastSkillInvoke(objectName());
 //         room->doSuperLightbox("jsp_jiangwei", objectName());
 
         room->addPlayerMark(player, objectName(), 1);
@@ -287,9 +291,7 @@ public:
             int recover = 2 - player->getHp();
             room->recover(player, RecoverStruct(NULL, NULL, recover));
             room->handleAcquireDetachSkills(player, "tiaoxin", objectName());
-
-            if (player->hasSkill("kunfen", true))
-                room->doNotify(player, QSanProtocol::S_COMMAND_UPDATE_SKILL, QVariant("kunfen"));
+            room->updateSkill(player, "kunfen");
         }
 
         return false;

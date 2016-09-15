@@ -354,7 +354,7 @@ public:
 
 XuanfengCard::XuanfengCard()
 {
-    mute = true;
+    
 }
 
 bool XuanfengCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
@@ -410,10 +410,10 @@ public:
     void perform(Room *room, ServerPlayer *lingtong) const
     {
         if (lingtong->askForSkillInvoke(this, QVariant(), false)) {
-
+            room->setPlayerFlag(lingtong, "first_xuanfeng");
             if (room->askForUseCard(lingtong, "@@xuanfeng", "@@xuanfeng-discard"))
             {
-                lingtong->broadcastSkillInvoke(objectName());
+                room->setPlayerFlag(lingtong, "-first_xuanfeng");
                 room->askForUseCard(lingtong, "@@xuanfeng", "@@xuanfeng-discard");
             }
         }
@@ -440,6 +440,13 @@ public:
         }
 
         return false;
+    }
+
+    int getEffectIndex(const ServerPlayer *player, const Card *) const
+    {
+        if (player->hasFlag("first_xuanfeng"))
+            return -1;
+        return -2;
     }
 };
 

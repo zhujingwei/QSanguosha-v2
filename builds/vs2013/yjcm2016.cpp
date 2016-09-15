@@ -7,6 +7,7 @@
 #include "clientplayer.h"
 #include "engine.h"
 #include "clientstruct.h"
+#include "json.h"
 
 
 JisheCard::JisheCard()
@@ -263,6 +264,18 @@ public:
         }
         return false;
     }
+
+    QString getDescriptionSource(const Player *player) const
+    {
+        QString add_str;
+        if (player != NULL) {
+            if (player->getMark("jiaozhao-self") > 0)
+                add_str += "-self";
+            if (player->getMark("jiaozhao-trick") > 0)
+                add_str += "-trick";
+        }
+        return objectName() + add_str;
+    }
 };
 
 class JiaozhaoProhibit : public ProhibitSkill
@@ -295,6 +308,7 @@ public:
     {
         if (target->askForSkillInvoke(this)) {
             target->broadcastSkillInvoke(objectName());
+            Room *room = target->getRoom();
 
             QStringList choices;
             choices << "draw";
@@ -307,8 +321,15 @@ public:
             QString choice = target->getRoom()->askForChoice(target, objectName(), choices.join("+"));
             if (choice == "draw")
                 target->drawCards(1);
-            else
-                target->getRoom()->setPlayerMark(target, choice, 1);
+            else {
+                room->setPlayerMark(target, choice, 1);
+                LogMessage log;
+                log.from = target;
+                log.type = "#danxin-choice";
+                log.arg = choice;
+                room->sendLog(log);
+                room->updateSkill(target, "jiaozhao");
+            }
         }
     }
 };

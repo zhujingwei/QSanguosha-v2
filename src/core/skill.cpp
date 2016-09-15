@@ -50,13 +50,12 @@ bool Skill::shouldBeVisible(const Player *Self) const
     return Self != NULL;
 }
 
-QString Skill::getDescription() const
+QString Skill::getDescription(const Player *player) const
 {
-    bool normal_game = ServerInfo.DuringGame && isNormalGameMode(ServerInfo.GameMode);
-    QString name = QString("%1%2").arg(objectName()).arg(normal_game ? "_p" : "");
+    QString name = getDescriptionSource(player == NULL ? Self : player);
     QString des_src = Sanguosha->translate(":" + name);
-    if (normal_game && des_src.startsWith(":"))
-        des_src = Sanguosha->translate(":" + objectName());
+//     if (des_src.startsWith(":"))
+//         des_src = Sanguosha->translate(":" + objectName());
     if (des_src.startsWith(":"))
         return QString();
     if (des_src.startsWith("[NoAutoRep]"))
@@ -85,6 +84,11 @@ QString Skill::getDescription() const
         }
     }
     return des_src;
+}
+
+QString Skill::getDescriptionSource(const Player *player) const
+{
+    return objectName();
 }
 
 QString Skill::getNotice(int index) const

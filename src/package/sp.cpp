@@ -1518,7 +1518,7 @@ public:
         if (triggerEvent == EventPhaseStart && player->getPhase() == Player::Play) {
             foreach(ServerPlayer *sunluyu, room->getOtherPlayers(player)) {
                 if (!player->inMyAttackRange(sunluyu) && TriggerSkill::triggerable(sunluyu) && sunluyu->askForSkillInvoke(this)) {
-                    room->broadcastSkillInvoke(objectName());
+                    sunluyu->broadcastSkillInvoke(objectName());
                     if (!player->hasSkill("zhixi", true))
                         room->acquireSkill(player, "zhixi", objectName());
                     if (sunluyu->getMark("mumu") == 0) {
@@ -1555,6 +1555,15 @@ public:
         
         return -1;
     }
+
+    QString getDescriptionSource(const Player *player /* = 0 */) const
+    {
+        if (player != NULL) {
+            if (player->getMark("mumu") > 0)
+                return objectName() + "-removelast";
+        }
+        return objectName();
+    }
 };
 
 
@@ -1579,63 +1588,59 @@ const Card * MeibuFilter::viewAs(const Card *originalCard) const
 
 MumuCard::MumuCard()
 {
-
+    target_fixed = true;
 }
 
-bool MumuCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
+void MumuCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &) const
 {
-    if (targets.isEmpty() && !to_select->getEquips().isEmpty()) {
-        QList<const Card *> equips = to_select->getEquips();
-        foreach(const Card *e, equips) {
-            if (to_select->getArmor() != NULL && to_select->getArmor()->getRealCard() == e->getRealCard())
-                return true;
+    QStringList choices;
+    QList<ServerPlayer *> to_get_armor;
+    QList<ServerPlayer *> to_dis_equip;
+    QMultiMap<ServerPlayer *, int> disabled;
+    foreach(ServerPlayer *p, room->getAllPlayers())
+    {
+        foreach(const Card *e, p->getEquips())
+        {
+            if (to_dis_equip.contains(p) && to_get_armor.contains(p))
+                break;
 
-            if (Self->canDiscard(to_select, e->getEffectiveId()))
-                return true;
+            if (p->getArmor() != NULL && p->getArmor()->getRealCard() == e->getRealCard())
+                to_get_armor << p;
+
+            if (source->canDiscard(p, e->getEffectiveId()))
+                to_dis_equip << p;
+            else
+                disabled.insertMulti(p, e->getEffectiveId());
         }
     }
+    if (!to_dis_equip.isEmpty())
+        choices << "dis_equip";
+    if (!to_get_armor.isEmpty())
+        choices << "get_armor";
 
-    return false;
-}
-
-void MumuCard::onEffect(const CardEffectStruct &effect) const
-{
-    ServerPlayer *target = effect.to;
-    ServerPlayer *player = effect.from;
-
-    Room *r = target->getRoom();
-
-    QList<int> disabled;
-    foreach(const Card *e, target->getEquips()) {
-        if (target->getArmor() != NULL && target->getArmor()->getRealCard() == e->getRealCard())
-            continue;
-
-        if (!player->canDiscard(target, e->getEffectiveId()))
-            disabled << e->getEffectiveId();
+    QString choice = room->askForChoice(source, "mumu", choices.join("+"));
+    if (choice == "get_armor") {
+        ServerPlayer *target = room->askForPlayerChosen(source, to_get_armor, "mumu");
+        if (target != NULL && target->getArmor() != NULL)
+            room->obtainCard(source, target->getArmor()->getEffectiveId());
+    } else {
+        ServerPlayer *target = room->askForPlayerChosen(source, to_dis_equip, "mumu");
+        if (target != NULL && target->getEquips().length() > 0) {
+            int id = room->askForCardChosen(source, target, "e", "mumu", false, Card::MethodNone, disabled.values(target));
+            if (id != -1) {
+                room->throwCard(Sanguosha->getCard(id), target, source == target ? NULL : source, true);
+                source->drawCards(1, "mumu");
+            }
+        }
     }
-
-    int id = r->askForCardChosen(player, target, "e", "mumu", false, Card::MethodNone, disabled);
-
-    QString choice = "discard";
-    if (target->getArmor() != NULL && id == target->getArmor()->getEffectiveId()) {
-        if (!player->canDiscard(target, id))
-            choice = "obtain";
-        else
-            choice = r->askForChoice(player, "mumu", "discard+obtain", id);
-    }
-
-    if (choice == "discard") {
-        r->throwCard(Sanguosha->getCard(id), target, player == target ? NULL : player);
-        player->drawCards(1, "mumu");
-    }
-    else
-        r->obtainCard(player, id);
 
 
     int used_id = subcards.first();
     const Card *c = Sanguosha->getCard(used_id);
-    if (c->isKindOf("Slash") || (c->isBlack() && c->isKindOf("TrickCard")))
-        player->addMark("mumu");
+    if (c->isKindOf("Slash") || (c->isBlack() && c->isKindOf("TrickCard"))) {
+        room->addPlayerMark(source, "mumu");
+        room->updateSkill(source, "meibu");
+    }
 }
 
 class MumuVS : public OneCardViewAsSkill
@@ -1674,8 +1679,9 @@ public:
 
     bool onPhaseChange(ServerPlayer *target) const
     {
-        target->setMark("mumu", 0);
-
+        Room *room = target->getRoom();
+        room->removePlayerMark(target, "mumu");
+        room->updateSkill(target, "meibu");
         return false;
     }
 };

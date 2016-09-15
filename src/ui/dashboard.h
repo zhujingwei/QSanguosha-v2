@@ -56,6 +56,7 @@ public:
 
     QSanSkillButton *removeSkillButton(const QString &skillName);
     QSanSkillButton *addSkillButton(const QString &skillName);
+    void updateSkillButton(const QString &skillName);
     bool isAvatarUnderMouse();
 
     void highlightEquip(QString skillName, bool hightlight);

@@ -229,8 +229,7 @@ class MumuCard : public SkillCard
 public:
     Q_INVOKABLE MumuCard();
 
-    bool targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const;
-    void onEffect(const CardEffectStruct &effect) const;
+    void use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targets) const;
 };
 
 #endif

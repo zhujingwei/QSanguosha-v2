@@ -257,6 +257,7 @@ public:
 
     void acquireSkill(ServerPlayer *player, const Skill *skill, const QString &reason, bool open = true);
     void acquireSkill(ServerPlayer *player, const QString &skill_name, const QString &reason, bool open = true);
+    void updateSkill(ServerPlayer *player, QString skill_name);
     void adjustSeats();
     void swapPile();
     inline QList<int> getDiscardPile()

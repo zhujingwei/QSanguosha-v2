@@ -28,7 +28,8 @@ public:
     bool isLordSkill() const;
     bool isAttachedLordSkill() const;
     virtual bool shouldBeVisible(const Player *Self) const; // usually for attached skill
-    QString getDescription() const;
+    QString getDescription(const Player *player = 0) const;
+    virtual QString getDescriptionSource(const Player *player = 0) const;
     QString getNotice(int index) const;
     bool isVisible() const;
 

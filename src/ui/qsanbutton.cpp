@@ -193,6 +193,11 @@ QSanSkillButton::QSanSkillButton(QGraphicsItem *parent)
     _m_skill = NULL;
 }
 
+void QSanSkillButton::updateSkillDesc()
+{
+    setToolTip(_m_skill->getDescription());
+}
+
 void QSanSkillButton::_setSkillType(SkillType type)
 {
     _m_skillType = type;
@@ -356,6 +361,22 @@ QSanSkillButton *QSanInvokeSkillDock::addSkillButtonByName(const QString &skillN
     _m_buttons.append(button);
     update();
     return button;
+}
+
+void QSanInvokeSkillDock::updateSkillButtonByName(const QString &skillName)
+{
+    QSanInvokeSkillButton *button = getSkillButtonByName(skillName);
+    if (button == NULL)
+        return;
+
+    const Skill *skill = Sanguosha->getSkill(skillName);
+    if (skill == NULL)
+        return;
+
+    button->setSkill(skill);
+//     connect(button, SIGNAL(skill_activated(const Skill *)), this, SIGNAL(skill_activated(const Skill *)));
+//     connect(button, SIGNAL(skill_deactivated(const Skill *)), this, SIGNAL(skill_deactivated(const Skill *)));
+    update();
 }
 
 int QSanInvokeSkillDock::width() const
